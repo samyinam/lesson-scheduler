@@ -77,19 +77,61 @@ let schedule = {};
 let waitlist = [];
 
 let days = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
-let slots = ["Morning","Afternoon","Evening"];
+let slots = ["Morning","Afternoon","Evening","Late Night"];
+let types = ["Group","Advanced","Private","Online"];
 
 function save(){
   localStorage.setItem("students", JSON.stringify(students));
   localStorage.setItem("availability", JSON.stringify(availability));
 }
 
+function ensureStudentShape(student){
+  if(typeof student.group !== "number") student.group = 1;
+  if(typeof student.advanced !== "number") student.advanced = 0;
+  if(typeof student.private !== "number") student.private = 0;
+  if(typeof student.online !== "number") student.online = 0;
+}
+
+function ensureAvailabilityShape(name){
+  if(!availability[name]){
+    availability[name] = {
+      Group:[],
+      Advanced:[],
+      Private:[],
+      Online:[]
+    };
+  }else{
+    if(!Array.isArray(availability[name].Group)) availability[name].Group = [];
+    if(!Array.isArray(availability[name].Advanced)) availability[name].Advanced = [];
+    if(!Array.isArray(availability[name].Private)) availability[name].Private = [];
+    if(!Array.isArray(availability[name].Online)) availability[name].Online = [];
+  }
+}
+
+students.forEach(st => {
+  ensureStudentShape(st);
+  ensureAvailabilityShape(st.name);
+});
+save();
+
 function addStudent(){
-  let name = document.getElementById("nameInput").value;
+  let name = document.getElementById("nameInput").value.trim();
   if(!name) return;
 
-  students.push({name,group:1});
-  availability[name] = [];
+  students.push({
+    name,
+    group:1,
+    advanced:0,
+    private:0,
+    online:0
+  });
+
+  availability[name] = {
+    Group:[],
+    Advanced:[],
+    Private:[],
+    Online:[]
+  };
 
   save();
   renderStudents();
@@ -101,81 +143,213 @@ function build(){
   waitlist = [];
 
   days.forEach(d=>{
-    schedule[d]={};
+    schedule[d] = {};
     slots.forEach(s=>{
-      schedule[d][s]=[];
+      schedule[d][s] = {
+        Group:[],
+        Advanced:[],
+        Private:[],
+        Online:[]
+      };
     });
   });
 
   students.forEach(st=>{
-    let placed=false;
+    ensureStudentShape(st);
+    ensureAvailabilityShape(st.name);
 
-    for(let d of days){
-      for(let s of slots){
-        let group = schedule[d][s];
+    const requests = [
+      { type:"Group", count: st.group },
+      { type:"Advanced", count: st.advanced },
+      { type:"Private", count: st.private },
+      { type:"Online", count: st.online }
+    ];
 
-        if(group.length<4){
-          group.push(st.name);
-          placed=true;
-          break;
+    requests.forEach(req=>{
+      for(let i=0;i<req.count;i++){
+
+        let placed = false;
+        let av = availability[st.name][req.type];
+
+        for(let slotKey of av){
+          let [d,s] = slotKey.split("-");
+          let bucket = schedule[d][s][req.type];
+
+          if(req.type === "Private"){
+            if(bucket.length === 0){
+              bucket.push(st.name);
+              placed = true;
+              break;
+            }
+          }else{
+            if(bucket.length < 4){
+              bucket.push(st.name);
+              placed = true;
+              break;
+            }
+          }
         }
+
+        if(!placed){
+          waitlist.push({name:st.name,type:req.type});
+        }
+
       }
-      if(placed) break;
-    }
-
-    if(!placed){
-      waitlist.push(st.name);
-    }
-
+    });
   });
+
+  fixBalance("Group");
+  fixBalance("Advanced");
+  fixBalance("Online");
+
+  fixSingles("Group");
+  fixSingles("Advanced");
+  fixSingles("Online");
 
   render();
 }
 
-function render(){
+function fixBalance(type){
+  for(let d in schedule){
+    for(let s in schedule[d]){
+      let g = schedule[d][s][type];
+      if(g.length === 5){
+        for(let d2 in schedule){
+          for(let s2 in schedule[d2]){
+            let g2 = schedule[d2][s2][type];
+            if(g2.length === 1){
+              let st = g2[0];
+              let av = availability[st][type];
+              if(av.includes(d+"-"+s)){
+                g.push(st);
+                g2.pop();
+                return;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
 
-  let out="";
+function fixSingles(type){
+  for(let d in schedule){
+    for(let s in schedule[d]){
+      let g = schedule[d][s][type];
+      if(g.length === 1){
+        let st = g[0];
+        if(!borrow(st,d,s,type)){
+          waitlist.push({name:st,type});
+          schedule[d][s][type] = [];
+        }
+      }
+    }
+  }
+}
+
+function borrow(st,d,s,type){
+  for(let d2 in schedule){
+    for(let s2 in schedule[d2]){
+      let g2 = schedule[d2][s2][type];
+      if(g2.length >= 3){
+        for(let i=0;i<g2.length;i++){
+          let c = g2[i];
+          if(availability[c][type].includes(d+"-"+s)){
+            g2.splice(i,1);
+            schedule[d][s][type].push(c,st);
+            return true;
+          }
+        }
+      }
+    }
+  }
+  return false;
+}
+
+function render(){
+  let out = "";
 
   days.forEach(d=>{
-    out+=`<h3>${d}</h3>`;
+    out += `<h3>${d}</h3>`;
 
     slots.forEach(s=>{
-      let g = schedule[d][s];
+      let block = "";
 
-      if(g.length>0){
-        out+=`<div class="slot"><b>${s}</b><br>`;
+      types.forEach(t=>{
+        let g = schedule[d][s][t];
+        if(g.length > 0){
+          block += `<div><b>${t}</b>: `;
+          g.forEach(n=>{
+            let hint = getHint(n,t,d);
+            block += `<span class="student">${n}<span class="hint">${hint}</span></span>`;
+          });
+          block += `</div>`;
+        }
+      });
 
-        g.forEach(n=>{
-          out+=`<span class="student">${n}</span>`;
-        });
-
-        out+=`</div>`;
+      if(block){
+        out += `<div class="slot"><b>${s}</b><br>${block}</div>`;
       }
     });
-
   });
 
   document.getElementById("schedule").innerHTML = out;
-
   renderWaitlist();
 }
 
-function renderWaitlist(){
-  let out="";
+function getHint(name,type,currentDay){
+  let av = availability[name][type];
+  let daysOnly = [...new Set(av.map(v=>v.split("-")[0]))];
+  return daysOnly.filter(d=>d!==currentDay).join(",");
+}
 
-  waitlist.forEach(name=>{
-    out+=`<div>${name}</div>`;
+function renderWaitlist(){
+  let out = "";
+
+  waitlist.forEach(w=>{
+    let av = availability[w.name][w.type];
+
+    av.forEach(slotKey=>{
+      let [d,s] = slotKey.split("-");
+      let bucket = schedule[d][s][w.type];
+
+      if(w.type === "Private" && bucket.length > 0) return;
+      if((w.type === "Group" || w.type === "Advanced" || w.type === "Online") && bucket.length >= 4) return;
+
+      out += `<button onclick="place('${w.name}','${w.type}','${d}','${s}')">${w.name} → ${w.type} → ${d} ${s}</button>`;
+    });
   });
 
   document.getElementById("waitlist").innerHTML = out || "None";
 }
 
+function place(name,type,d,s){
+  let bucket = schedule[d][s][type];
+
+  if(type === "Private" && bucket.length > 0){
+    alert("Private slot taken");
+    return;
+  }
+
+  if((type === "Group" || type === "Advanced" || type === "Online") && bucket.length >= 4){
+    alert("Slot full");
+    return;
+  }
+
+  bucket.push(name);
+
+  waitlist = waitlist.filter(w => !(w.name===name && w.type===type));
+
+  render();
+}
+
 function renderStudents(){
-  let out="";
+  let out = "";
   students.forEach(s=>{
-    out+=`<div>${s.name}</div>`;
+    out += `<div>${s.name} — G:${s.group} A:${s.advanced} P:${s.private} O:${s.online}</div>`;
   });
-  document.getElementById("students").innerHTML=out;
+  document.getElementById("students").innerHTML = out;
 }
 
 renderStudents();
