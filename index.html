@@ -1,361 +1,2299 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lesson Scheduler</title>
-
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Sam’s Scheduler</title>
 <style>
+*{box-sizing:border-box}
+html,body{height:100%}
 body{
-  font-family:Arial;
-  background:#111;
-  color:white;
-  padding:10px;
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:#0f1115;
+  color:#f3f4f6;
+  line-height:1.25;
 }
-
-button{
-  margin:4px;
-  padding:8px 10px;
-  border-radius:6px;
-  border:none;
-  background:#333;
-  color:white;
-  cursor:pointer;
+button,input,select,textarea{font:inherit}
+input,select,textarea{
+  background:#141821;
+  color:#f3f4f6;
+  border:1px solid rgba(255,255,255,.12);
 }
-
-input{
-  padding:6px;
-  border-radius:6px;
-  border:none;
+input::placeholder,textarea::placeholder{color:rgba(255,255,255,.45)}
+.topbar{
+  position:sticky;
+  top:0;
+  z-index:50;
+  padding:10px 12px;
+  background:rgba(15,17,21,.88);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid rgba(255,255,255,.08);
 }
-
-.slot{
-  border:1px solid #444;
-  padding:6px;
-  margin:6px 0;
-  border-radius:6px;
+.brand{display:flex;align-items:center;gap:10px}
+.logo{
+  width:34px;height:34px;border-radius:10px;
+  display:grid;place-items:center;font-weight:900;
+  background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.12)
 }
-
-.student{
-  display:inline-block;
-  background:#333;
-  padding:4px 6px;
-  margin:2px;
-  border-radius:6px;
+.title{font-weight:900;font-size:14px}
+.subtitle{font-size:12px;color:rgba(255,255,255,.7);margin-top:2px}
+.tabs{display:flex;gap:8px;margin-top:10px}
+.tab,.btn,.btnGhost,.btnTiny{
+  border-radius:12px;border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.06);color:#f3f4f6;
+  padding:10px 12px;font-weight:900;cursor:pointer;
 }
-
-.hint{
-  font-size:10px;
-  opacity:0.6;
-  margin-left:4px;
+.tab{flex:1}
+.tab.active{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.18)}
+.btn{background:rgba(99,102,241,.88);border-color:rgba(99,102,241,.65)}
+.btnGhost{background:rgba(255,255,255,.06)}
+.btnTiny{padding:6px 9px;font-size:11px;border-radius:999px}
+.container{max-width:1000px;margin:0 auto;padding:14px 14px 90px}
+.page{display:none}
+.page.show{display:block}
+.pageHeader{
+  display:flex;justify-content:space-between;align-items:flex-start;
+  gap:12px;margin:10px 0 8px
+}
+.pageHeader h2{margin:0;font-size:18px;font-weight:900}
+.row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.card{
+  margin-top:12px;padding:12px;border-radius:16px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10)
+}
+h3{margin:0 0 8px;font-size:14px;font-weight:900}
+.muted{color:rgba(255,255,255,.7)}
+.small{font-size:12px}
+.hidden{display:none!important}
+.notice{
+  margin-top:10px;padding:10px 12px;border-radius:14px;
+  border:1px solid rgba(99,102,241,.45);background:rgba(99,102,241,.18);
+  font-size:12px;font-weight:900
+}
+.grow{flex:1}
+label{display:block;font-size:12px;font-weight:900;color:rgba(255,255,255,.75)}
+input,select{width:100%;margin-top:6px;padding:10px;border-radius:12px;outline:none}
+textarea{width:100%;min-height:90px;margin-top:8px;padding:10px;border-radius:12px;outline:none;resize:vertical}
+.summaryStats{display:flex;gap:8px;flex-wrap:wrap}
+.summaryStat{
+  padding:8px 10px;border-radius:12px;font-size:12px;font-weight:900;
+  border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.04)
+}
+.filterRow{display:flex;gap:12px;flex-wrap:wrap}
+.filterBlock{flex:1;min-width:220px}
+.btnGroup{display:flex;gap:8px;flex-wrap:wrap}
+.tapBtn{
+  border-radius:12px;border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.06);color:#f3f4f6;
+  padding:9px 11px;font-weight:900;cursor:pointer
+}
+.tapBtn.on{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.20)}
+.weekScroll{overflow-x:auto;padding-bottom:6px}
+.weekGrid{min-width:920px}
+.weekTable{width:100%;border-collapse:separate;border-spacing:8px}
+.weekTable th,.weekTable td{vertical-align:top}
+.weekTable thead th{
+  text-align:left;font-size:12px;font-weight:900;color:rgba(255,255,255,.75)
+}
+.weekTable tbody td:first-child{
+  padding-top:10px;font-size:12px;font-weight:900;color:rgba(255,255,255,.75)
+}
+.weekCellBtn{
+  width:100%;min-width:160px;text-align:left;padding:10px;border-radius:14px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);
+  color:#f3f4f6;position:relative;cursor:pointer
+}
+.weekCellBtn.offDay{
+  background:rgba(34,197,94,.10);
+  border-color:rgba(34,197,94,.20)
+}
+.weekCellBtn.weekEmpty{opacity:.85}
+.weekLine{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.weekLeft{display:flex;align-items:center;gap:8px;min-width:0}
+.weekTag{
+  width:22px;height:22px;border-radius:8px;display:grid;place-items:center;
+  font-size:12px;font-weight:900;background:rgba(255,255,255,.10);
+  border:1px solid rgba(255,255,255,.12)
+}
+.weekText{
+  font-size:12px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:170px
+}
+.weekPill{
+  padding:4px 8px;border-radius:999px;font-size:11px;font-weight:900;
+  background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.12)
+}
+.weekEmptyText{padding:10px 0;color:rgba(255,255,255,.45);font-weight:900}
+.offDayLabel{margin-top:6px;font-size:11px;font-weight:900;color:rgba(134,239,172,.95)}
+.noteDot{position:absolute;top:6px;right:8px;font-size:11px;font-weight:900}
+.todayCol{box-shadow:0 0 0 1px rgba(99,102,241,.35) inset;border-radius:12px}
+.scheduleGrid{margin-top:12px;display:flex;flex-direction:column;gap:10px}
+.dayDetails,.slotDetails{
+  overflow:hidden;border-radius:16px;border:1px solid rgba(255,255,255,.10);
+  background:rgba(255,255,255,.06)
+}
+.dayDetails.offDayDetails{
+  background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.18)
+}
+.daySummary,.slotSummary{
+  list-style:none;cursor:pointer;padding:12px;
+  display:flex;justify-content:space-between;align-items:center;gap:10px;font-weight:900
+}
+.daySummary::-webkit-details-marker,.slotSummary::-webkit-details-marker,.settingsSummary::-webkit-details-marker,.typeSummary::-webkit-details-marker{display:none}
+.dayBody,.slotBody{padding:0 12px 12px}
+.slotDetails{margin-top:10px;background:rgba(0,0,0,.18)}
+.badge{
+  padding:4px 8px;border-radius:999px;font-size:11px;font-weight:900;
+  background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.12)
+}
+.typeBlock{margin-top:10px}
+.typeHeader{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:12px;font-weight:900;color:rgba(255,255,255,.8)}
+.typeHeaderLeft{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.chipWrap{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.chipBtn{
+  display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border-radius:999px;
+  border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.08);
+  color:#f3f4f6;font-size:12px;font-weight:900;cursor:pointer
+}
+.chipType{
+  width:22px;height:22px;border-radius:999px;display:grid;place-items:center;
+  border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.10);font-size:12px
+}
+.altHint{opacity:.72;font-size:11px;font-weight:800}
+.lockMark{font-size:12px;opacity:.9}
+.conflictBox{
+  margin-top:10px;padding:10px;border-radius:14px;
+  border:1px solid rgba(255,77,77,.35);background:rgba(255,77,77,.10)
+}
+.conflictTitle{font-size:12px;font-weight:900;margin-bottom:8px}
+.conflictBtns{display:flex;gap:10px;flex-wrap:wrap}
+.conflictBtns button{flex:1;min-width:170px}
+.studentQuickList{display:flex;flex-wrap:wrap;gap:8px}
+.studentChip{
+  display:inline-flex;align-items:center;gap:8px;padding:9px 10px;border-radius:999px;
+  border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);
+  cursor:pointer;font-size:12px;font-weight:900
+}
+.studentChip.active{background:rgba(99,102,241,.22);border-color:rgba(99,102,241,.40)}
+.studentStatus{
+  display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 6px;border-radius:999px;
+  font-size:11px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.10)
+}
+.statusDone{background:rgba(34,197,94,.16);border-color:rgba(34,197,94,.30)}
+.statusPartial{background:rgba(250,204,21,.16);border-color:rgba(250,204,21,.30)}
+.statusEmpty{background:rgba(255,255,255,.08)}
+.settingsBlock{
+  border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:10px;background:rgba(0,0,0,.10)
+}
+.settingsSummary,.typeSummary{list-style:none;cursor:pointer;font-weight:900}
+.typePanel{
+  margin-top:14px;padding:12px;border-radius:16px;
+  border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.05)
+}
+.typeTitle{font-size:14px;font-weight:900}
+.quickActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.availabilitySection{margin-top:12px}
+.availabilityRowHeader{margin-bottom:8px;font-size:12px;font-weight:900;color:rgba(255,255,255,.84)}
+.gridDays{display:grid;gap:8px}
+.gridDays7{grid-template-columns:repeat(7,minmax(0,1fr))}
+.daySlotBtn{
+  min-height:40px;padding:8px 4px;border-radius:12px;
+  border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);
+  color:#f3f4f6;font-size:12px;font-weight:900;cursor:pointer
+}
+.daySlotBtn.on{background:rgba(99,102,241,.28);border-color:rgba(99,102,241,.45)}
+.twoCol{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.summaryTableWrap{overflow-x:auto}
+.allStudentsTable table{width:100%;min-width:1020px;border-collapse:collapse}
+.allStudentsTable th,.allStudentsTable td{
+  border:1px solid rgba(255,255,255,.10);padding:8px 10px;text-align:left;vertical-align:top;font-size:12px
+}
+.allStudentsTable th{background:rgba(255,255,255,.06);font-weight:900}
+.allStudentsTable .nameCell,.allStudentsTable .pkgCell{font-weight:900}
+.waitItem{
+  display:flex;justify-content:space-between;align-items:flex-start;gap:12px;
+  padding:10px 0;border-bottom:1px solid rgba(255,255,255,.08)
+}
+.waitItem:last-child{border-bottom:none}
+.waitActions{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+.waitBtn{
+  padding:6px 8px;border-radius:999px;font-size:11px;font-weight:900;
+  border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);color:#f3f4f6;cursor:pointer
+}
+.waitBtn.warn{border-color:rgba(250,204,21,.45);background:rgba(250,204,21,.16)}
+.modal{position:fixed;inset:0;z-index:200;display:block}
+.backdrop{position:absolute;inset:0;background:rgba(0,0,0,.55)}
+.sheet{
+  position:absolute;left:0;right:0;bottom:0;max-height:80vh;overflow:auto;
+  background:#111522;border-top-left-radius:18px;border-top-right-radius:18px;
+  border:1px solid rgba(255,255,255,.10);padding:12px
+}
+.sheetHeader{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px}
+.sheetTitle{font-size:14px;font-weight:900}
+.moveOptions{display:flex;flex-direction:column;gap:8px}
+.moveOption{
+  display:flex;justify-content:space-between;align-items:center;gap:10px;
+  padding:10px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06)
+}
+.moveOption .left{display:flex;flex-direction:column;gap:4px}
+.moveOption .right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sheetActions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.sheetActions button{flex:1;min-width:150px}
+.pill{
+  padding:4px 8px;border-radius:999px;font-size:11px;font-weight:900;
+  background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.12)
+}
+.pill.good{border-color:rgba(34,197,94,.45);background:rgba(34,197,94,.16)}
+.pill.warn{border-color:rgba(250,204,21,.45);background:rgba(250,204,21,.16)}
+.pill.bad{border-color:rgba(239,68,68,.45);background:rgba(239,68,68,.16)}
+@media (max-width:720px){
+  .container{padding:12px 12px 90px}
+  .twoCol{grid-template-columns:1fr}
+  .weekGrid{min-width:820px}
+  .gridDays7{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .daySlotBtn{min-height:44px;font-size:13px}
+  .sheetActions button{min-width:100%}
+  .waitItem{flex-direction:column}
+  .waitActions{justify-content:flex-start}
 }
 </style>
 </head>
-
 <body>
+<header class="topbar">
+  <div class="brand">
+    <div class="logo">SE</div>
+    <div>
+      <div class="title">Sam’s Scheduler</div>
+      <div class="subtitle">Mobile entry • Auto-build • Move • Export</div>
+    </div>
+  </div>
 
-<h2>Lesson Scheduler</h2>
+  <nav class="tabs">
+    <button class="tab active" data-page="schedulePage">Schedule</button>
+    <button class="tab" data-page="studentsPage">Students</button>
+    <button class="tab" data-page="settingsPage">Settings</button>
+  </nav>
+</header>
 
-<input id="nameInput" placeholder="Student name">
-<button onclick="addStudent()">Add Student</button>
-<button onclick="build()">Auto Build</button>
+<main class="container">
+  <section id="schedulePage" class="page show">
+    <div class="pageHeader">
+      <h2>Weekly Schedule</h2>
+      <div class="row">
+        <button id="todayBtn" class="btnGhost">Today</button>
+        <button id="generateBtn" class="btn">Auto-build</button>
+        <button id="reoptimizeBtn" class="btnGhost">Re-optimize</button>
+        <button id="clearScheduleBtn" class="btnGhost">Clear</button>
+      </div>
+    </div>
 
-<h3>Students</h3>
-<div id="students"></div>
+    <div class="small muted">
+      Group, Advanced, and Online aim for 3–4, accept 2, and try to avoid solos. Private is 1.
+    </div>
 
-<h3>Schedule</h3>
-<div id="schedule"></div>
+    <div id="notice" class="notice hidden"></div>
 
-<h3>Waitlist</h3>
-<div id="waitlist"></div>
+    <div class="card">
+      <h3>Week Summary</h3>
+      <div id="scheduleSummary" class="summaryStats"></div>
+    </div>
+
+    <div class="card">
+      <h3>Filters</h3>
+      <div class="filterRow">
+        <div class="filterBlock">
+          <div class="small muted" style="font-weight:900">Show</div>
+          <div id="showFilterBtns" class="btnGroup"></div>
+        </div>
+        <div class="filterBlock">
+          <div class="small muted" style="font-weight:900">Type</div>
+          <div id="typeFilterBtns" class="btnGroup"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Week at a glance</h3>
+      <div class="small muted" style="margin-bottom:10px">Swipe ← → to see all days. Off days are highlighted. A dot means a note exists.</div>
+      <div class="weekScroll">
+        <div id="weekGrid" class="weekGrid"></div>
+      </div>
+    </div>
+
+    <div id="scheduleGrid" class="scheduleGrid"></div>
+
+    <div class="card">
+      <h3>Waitlist</h3>
+      <div id="waitlistBox" class="small muted">None 🎉</div>
+    </div>
+
+    <div class="card">
+      <h3>Unscheduled</h3>
+      <div id="unscheduledList" class="small muted">None 🎉</div>
+    </div>
+
+    <div class="card">
+      <h3>Export Schedule</h3>
+      <label class="grow">
+        Week label
+        <input id="weekLabelInput" placeholder="Week 31 (Week of March 9, 2026)" />
+      </label>
+      <div class="row" style="margin-top:10px">
+        <button id="buildFullExportBtn" class="btnGhost">Build Full</button>
+        <button id="buildCompactExportBtn" class="btnGhost">Build Compact</button>
+        <button id="copyExportBtn" class="btn">Copy Export</button>
+      </div>
+      <textarea id="exportScheduleBox" placeholder="Your copyable weekly schedule will appear here..."></textarea>
+    </div>
+  </section>
+
+  <section id="studentsPage" class="page">
+    <div class="pageHeader">
+      <h2>Students</h2>
+      <div class="row">
+        <button id="exportBtn" class="btnGhost">Export Data</button>
+        <button id="importBtn" class="btnGhost">Import Data</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Quick student pick</h3>
+
+      <div class="row">
+        <label class="grow">
+          Search students
+          <input id="studentSearch" placeholder="Type a name…" />
+        </label>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <label class="grow">
+          Add new student
+          <input id="studentName" placeholder="e.g., Yuki" />
+        </label>
+        <button id="addStudentBtn" class="btn">Add</button>
+      </div>
+
+      <div class="small muted" style="margin-top:10px">Tap a student below to edit this week’s availability.</div>
+      <div id="studentQuickList" class="studentQuickList" style="margin-top:10px"></div>
+
+      <div class="row" style="margin-top:10px">
+        <label class="grow">
+          Select student
+          <select id="studentSelect"></select>
+        </label>
+      </div>
+    </div>
+
+    <div class="card">
+      <div>
+        <h3>Weekly Availability Entry</h3>
+        <div id="editingStudentLabel" class="small muted">Select a student.</div>
+      </div>
+
+      <details class="settingsBlock" style="margin-top:12px">
+        <summary class="settingsSummary">Student settings</summary>
+        <div class="twoCol" style="margin-top:12px">
+          <label>Group
+            <select id="pkgGroup">
+              <option value="0">0</option><option value="1" selected>1</option><option value="2">2</option><option value="3">3</option>
+            </select>
+          </label>
+          <label>Advanced
+            <select id="pkgAdvanced">
+              <option value="0" selected>0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option>
+            </select>
+          </label>
+          <label>Private
+            <select id="pkgPrivate">
+              <option value="0" selected>0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option>
+            </select>
+          </label>
+          <label>Online
+            <select id="pkgOnline">
+              <option value="0" selected>0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option>
+            </select>
+          </label>
+          <label>Max sessions / day
+            <select id="maxPerDay">
+              <option value="1" selected>1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option>
+            </select>
+          </label>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <button id="savePackagesBtn" class="btn">Save student settings</button>
+        </div>
+      </details>
+
+      <details id="groupDetails" class="typePanel" open>
+        <summary class="typeSummary">
+          <div>
+            <div class="typeTitle">Group</div>
+            <div class="small muted">Usually evenings, but fully flexible.</div>
+          </div>
+        </summary>
+        <div class="quickActions">
+          <button class="btnGhost" data-bulk="group-weekday-evening">Weekday evenings</button>
+          <button class="btnGhost" data-bulk="group-all-evening">All evenings</button>
+          <button class="btnGhost" data-bulk="group-clear">Clear Group</button>
+        </div>
+        <div class="availabilitySection"><div class="availabilityRowHeader">Morning</div><div id="groupMorning" class="gridDays gridDays7"></div></div>
+        <div class="availabilitySection"><div class="availabilityRowHeader">Afternoon</div><div id="groupAfternoon" class="gridDays gridDays7"></div></div>
+        <div class="availabilitySection"><div class="availabilityRowHeader">Evening</div><div id="groupEvening" class="gridDays gridDays7"></div></div>
+        <div class="availabilitySection"><div class="availabilityRowHeader">Late Night</div><div id="groupLateNight" class="gridDays gridDays7"></div></div>
+      </details>
+
+      <details id="advancedDetails" class="typePanel">
+        <summary class="typeSummary">
+          <div>
+            <div class="typeTitle">Advanced</div>
+            <div class="small muted">Usually afternoons, but fully flexible.</div>
+          </div>
+        </summary>
+        <div class="quickActions">
+          <button class="btnGhost" data-bulk="advanced-weekday-afternoon">Weekday afternoons</button>
+          <button class="btnGhost" data-bulk="advanced-clear">Clear Advanced</button>
+        </div>
+        <div class="availabilitySection"><div class="availabilityRowHeader">Morning</div><div id="advancedMorning" class="gridDays gridDays7"></div></div>
+        <div class="availabilitySection"><div class="availabilityRowHeader">Afternoon</div><div id="advancedAfternoon" class="gridDays gridDays7"></div></div>
+        <div class="availabilitySection"><div class="availabilityRowHeader">Evening</div><div id="advancedEvening" class="gridDays gridDays7"></div></div>
+        <div class="availabilitySection"><div class="availabilityRowHeader">Late Night</div><div id="advancedLateNight" class="gridDays gridDays7"></div></div>
+      </details>
+
+      <details id="privateDetails" class="typePanel">
+        <summary class="typeSummary">
+          <div>
+            <div class="typeTitle">Private</div>
+            <div class="small muted">Usually mornings, but can be any time.</div>
+          </div>
+        </summary>
+        <div class="quickActions">
+          <button class="btnGhost" data-bulk="private-weekday-morning">Weekday mornings</button>
+          <button class="btnGhost" data-bulk="private-clear">Clear Private</button>
+        </div>
+        <div class="availabilitySection"><div class="availabilityRowHeader">Morning</div><div id="privateMorning" class="gridDays gridDays7"></div></div>
+        <div class="availabilitySection"><div class="availabilityRowHeader">Afternoon</div><div id="privateAfternoon" class="gridDays gridDays7"></div></div>
+        <div class="availabilitySection"><div class="availabilityRowHeader">Evening</div><div id="privateEvening" class="gridDays gridDays7"></div></div>
+        <div class="availabilitySection"><div class="availabilityRowHeader">Late Night</div><div id="privateLateNight" class="gridDays gridDays7"></div></div>
+      </details>
+
+      <details id="onlineDetails" class="typePanel">
+        <summary class="typeSummary">
+          <div>
+            <div class="typeTitle">Online</div>
+            <div class="small muted">Online group or cohort sessions, up to 4.</div>
+          </div>
+        </summary>
+        <div class="quickActions">
+          <button class="btnGhost" data-bulk="online-late-night">Late nights</button>
+          <button class="btnGhost" data-bulk="online-clear">Clear Online</button>
+        </div>
+        <div class="availabilitySection"><div class="availabilityRowHeader">Morning</div><div id="onlineMorning" class="gridDays gridDays7"></div></div>
+        <div class="availabilitySection"><div class="availabilityRowHeader">Afternoon</div><div id="onlineAfternoon" class="gridDays gridDays7"></div></div>
+        <div class="availabilitySection"><div class="availabilityRowHeader">Evening</div><div id="onlineEvening" class="gridDays gridDays7"></div></div>
+        <div class="availabilitySection"><div class="availabilityRowHeader">Late Night</div><div id="onlineLateNight" class="gridDays gridDays7"></div></div>
+      </details>
+
+      <div class="row" style="margin-top:14px">
+        <button id="saveAllAvailabilityBtn" class="btn">Save all availability</button>
+        <button id="clearSelectedStudentAvailabilityBtn" class="btnGhost">Clear selected student availability</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Selected Student Summary</h3>
+      <div id="summaryBox" class="small muted">Select a student.</div>
+    </div>
+
+    <div class="card">
+      <h3>All Students Summary</h3>
+      <div class="row" style="margin-bottom:10px">
+        <label style="min-width:180px">Sort by
+          <select id="studentSummarySort">
+            <option value="name">Name</option>
+            <option value="groupPkg">Group packages</option>
+            <option value="advancedPkg">Advanced packages</option>
+            <option value="privatePkg">Private packages</option>
+            <option value="onlinePkg">Online packages</option>
+            <option value="maxDay">Max/day</option>
+          </select>
+        </label>
+        <label style="min-width:180px">Order
+          <select id="studentSummaryOrder">
+            <option value="asc">Ascending</option>
+            <option value="desc">Descending</option>
+          </select>
+        </label>
+      </div>
+      <div class="summaryTableWrap">
+        <div id="allStudentsSummary" class="allStudentsTable muted small">No students yet.</div>
+      </div>
+    </div>
+
+    <textarea id="jsonBox" placeholder="Export / Import data here..."></textarea>
+  </section>
+
+  <section id="settingsPage" class="page">
+    <div class="pageHeader">
+      <h2>Settings</h2>
+      <div class="row">
+        <button id="startNewWeekBtn" class="btnGhost">Start New Week</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Capacities</h3>
+      <div class="twoCol">
+        <label>Group cap (2–6)
+          <input id="groupCap" type="number" min="2" max="6" step="1" />
+        </label>
+        <label>Advanced cap (2–4)
+          <input id="advancedCap" type="number" min="2" max="4" step="1" />
+        </label>
+        <label>Online cap (2–4)
+          <input id="onlineCap" type="number" min="2" max="4" step="1" />
+        </label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Preferred days</h3>
+      <label>
+        Preferred days (multi-select)
+        <select id="preferredDays" multiple size="7">
+          <option selected>Mon</option>
+          <option selected>Tue</option>
+          <option selected>Wed</option>
+          <option selected>Thu</option>
+          <option selected>Fri</option>
+          <option>Sat</option>
+          <option>Sun</option>
+        </select>
+      </label>
+    </div>
+  </section>
+
+  <div id="moveModal" class="modal hidden" aria-hidden="true">
+    <div id="moveBackdrop" class="backdrop"></div>
+    <div class="sheet">
+      <div class="sheetHeader">
+        <div>
+          <div id="moveTitle" class="sheetTitle">Move</div>
+          <div id="moveSubtitle" class="small muted">Choose a slot</div>
+        </div>
+        <button id="closeMove" class="btnGhost">Close</button>
+      </div>
+      <div id="moveOptions" class="moveOptions"></div>
+      <div class="sheetActions">
+        <button id="lockSessionBtn" class="btnGhost">Lock session</button>
+        <button id="cancelSessionBtn" class="btnGhost">Cancel this session</button>
+        <button id="cancelWeekBtn" class="btnGhost">Cancel student for week</button>
+      </div>
+    </div>
+  </div>
+</main>
 
 <script>
+const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+const WEEKDAYS = ["Mon","Tue","Wed","Thu","Fri"];
+const SLOTS = ["Morning","Afternoon","Evening","Late Night"];
+const TYPES = ["Group","Advanced","Private","Online"];
+const COHORT_TYPES = ["Group","Advanced","Online"];
+const TYPE_PRIORITY = { Private: 4, Online: 3, Advanced: 2, Group: 1 };
+const STORAGE_KEY = "sams_scheduler_completed_v1";
 
-let students = JSON.parse(localStorage.getItem("students")||"[]");
-let availability = JSON.parse(localStorage.getItem("availability")||"{}");
+function defaultState(){
+  return {
+    students: [],
+    schedule: [],
+    settings: {
+      groupCap: 4,
+      advancedCap: 4,
+      onlineCap: 4,
+      preferredDays: ["Mon","Tue","Wed","Thu","Fri"]
+    },
+    ui: {
+      showFilter: "Filled",
+      typeFilter: "All"
+    },
+    waitlist: [],
+    _lastUnscheduled: [],
+    weekLabel: "",
+    sessionNotes: {}
+  };
+}
 
-let schedule = {};
-let waitlist = [];
-
-let days = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
-let slots = ["Morning","Afternoon","Evening","Late Night"];
-let types = ["Group","Advanced","Private","Online"];
+function load(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return defaultState();
+    const parsed = JSON.parse(raw);
+    if(!parsed || !Array.isArray(parsed.students)) return defaultState();
+    return {
+      ...defaultState(),
+      ...parsed,
+      settings: { ...defaultState().settings, ...(parsed.settings || {}) },
+      ui: { ...defaultState().ui, ...(parsed.ui || {}) },
+      sessionNotes: { ...(parsed.sessionNotes || {}) },
+      weekLabel: parsed.weekLabel || ""
+    };
+  }catch{
+    return defaultState();
+  }
+}
+let state = load();
 
 function save(){
-  localStorage.setItem("students", JSON.stringify(students));
-  localStorage.setItem("availability", JSON.stringify(availability));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
-function ensureStudentShape(student){
-  if(typeof student.group !== "number") student.group = 1;
-  if(typeof student.advanced !== "number") student.advanced = 0;
-  if(typeof student.private !== "number") student.private = 0;
-  if(typeof student.online !== "number") student.online = 0;
+function uid(){
+  return (crypto?.randomUUID?.() || Math.random().toString(36).slice(2,10));
 }
 
-function ensureAvailabilityShape(name){
-  if(!availability[name]){
-    availability[name] = {
-      Group:[],
-      Advanced:[],
-      Private:[],
-      Online:[]
-    };
+function escapeHtml(str){
+  return String(str)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;");
+}
+
+function clampInt(n,min,max){
+  n = Number(n);
+  if(Number.isNaN(n)) n = min;
+  return Math.max(min, Math.min(max, Math.trunc(n)));
+}
+
+function ensureStudentDefaults(student){
+  if(!student.packages){
+    student.packages = { Group:1, Advanced:0, Private:0, Online:0 };
   }else{
-    if(!Array.isArray(availability[name].Group)) availability[name].Group = [];
-    if(!Array.isArray(availability[name].Advanced)) availability[name].Advanced = [];
-    if(!Array.isArray(availability[name].Private)) availability[name].Private = [];
-    if(!Array.isArray(availability[name].Online)) availability[name].Online = [];
+    student.packages.Group = Number(student.packages.Group ?? 1);
+    student.packages.Advanced = Number(student.packages.Advanced ?? 0);
+    student.packages.Private = Number(student.packages.Private ?? 0);
+    student.packages.Online = Number(student.packages.Online ?? 0);
+  }
+  student.maxPerDay = Number(student.maxPerDay ?? 1);
+  student.availability = Array.isArray(student.availability) ? student.availability : [];
+}
+
+state.students.forEach(ensureStudentDefaults);
+
+function studentById(id){ return state.students.find(s => s.id === id) || null; }
+
+function preferredDaysSet(){ return new Set(state.settings.preferredDays || []); }
+
+function getTodayLabel(){
+  const map = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  return map[new Date().getDay()];
+}
+const TODAY = getTodayLabel();
+
+function capFor(type){
+  if(type === "Group") return clampInt(state.settings.groupCap,2,6);
+  if(type === "Advanced") return clampInt(state.settings.advancedCap,2,4);
+  if(type === "Online") return clampInt(state.settings.onlineCap,2,4);
+  return 1;
+}
+
+function countAt(type, day, slot, arr){
+  return arr.filter(a => a.type===type && a.day===day && a.slot===slot).length;
+}
+
+function sessionsScheduledForStudentOnDay(studentId, day, arr){
+  return arr.filter(a => a.studentId===studentId && a.day===day).length;
+}
+
+function hasCapacity(type, day, slot, arr){
+  if(type === "Private") return countAt(type, day, slot, arr) === 0;
+  return countAt(type, day, slot, arr) < capFor(type);
+}
+
+function isDoubleBooked(studentId, day, slot, arr, excludeId=null){
+  return arr.some(a => a.id !== excludeId && a.studentId===studentId && a.day===day && a.slot===slot);
+}
+
+function isAvail(studentId, type, day, slot){
+  const st = studentById(studentId);
+  if(!st) return false;
+  return st.availability.some(a => a.type===type && a.day===day && a.slot===slot);
+}
+
+function typesPresent(day, slot, arr){
+  return [...new Set(arr.filter(a => a.day===day && a.slot===slot).map(a => a.type))];
+}
+
+function isConflict(day, slot, arr){
+  return typesPresent(day, slot, arr).length >= 2;
+}
+
+function cohortScore(type,size){
+  if(size <= 0) return 0;
+  if(size === 1) return -1000;
+  if(size === 2) return 7;
+  if(size === 3) return 12;
+  if(size === 4) return 10;
+  if(size >= 5) return 1;
+  return 0;
+}
+
+function candidateScore(type, day, slot, arr){
+  let s = 0;
+  const pref = preferredDaysSet();
+  if(pref.has(day)) s += 40;
+  if(slot === "Afternoon") s += 4;
+  if(slot === "Late Night" && type === "Online") s += 10;
+  if(type === "Advanced") s += 10;
+  if(type === "Online") s += 8;
+  if(type === "Group") s += 6;
+
+  const current = countAt(type,day,slot,arr);
+
+  if(type === "Private"){
+    if(current === 0) s += 3;
+    else s -= 1000;
+  }else{
+    if(current === 0) s += 4;
+    if(current === 1) s += 18;
+    if(current === 2) s += 15;
+    if(current === 3) s += 10;
+    if(current >= 4) s -= 12;
+  }
+
+  if(isConflict(day,slot,arr)) s -= 2;
+  return s;
+}
+
+function buildRequests(){
+  const reqs = [];
+  for(const st of state.students){
+    ensureStudentDefaults(st);
+    for(const type of TYPES){
+      const n = Number(st.packages[type] || 0);
+      for(let i=1;i<=n;i++){
+        reqs.push({
+          reqId: uid(),
+          studentId: st.id,
+          studentName: st.name,
+          type,
+          unitIndex: i
+        });
+      }
+    }
+  }
+  reqs.sort((a,b)=>{
+    const p = TYPE_PRIORITY[b.type] - TYPE_PRIORITY[a.type];
+    if(p !== 0) return p;
+    return a.studentName.localeCompare(b.studentName);
+  });
+  return reqs;
+}
+
+function moveWouldBeValid(a,newDay,newSlot,arr){
+  const st = studentById(a.studentId);
+  if(!st) return false;
+  if(isDoubleBooked(a.studentId,newDay,newSlot,arr,a.id)) return false;
+  if(newDay !== a.day && sessionsScheduledForStudentOnDay(a.studentId,newDay,arr) >= st.maxPerDay) return false;
+  if(a.type === "Private" && !hasCapacity("Private",newDay,newSlot,arr)) return false;
+  return true;
+}
+
+function splitOversizedGroups(type, arr){
+  let moved = 0;
+  let changed = true;
+
+  while(changed){
+    changed = false;
+
+    const sources = [];
+    DAYS.forEach(day=>{
+      SLOTS.forEach(slot=>{
+        const size = countAt(type,day,slot,arr);
+        if(size >= 5) sources.push({day,slot,size});
+      });
+    });
+
+    sources.sort((a,b)=>b.size-a.size);
+
+    outer:
+    for(const src of sources){
+      const members = arr.filter(a => a.type===type && a.day===src.day && a.slot===src.slot);
+      if(members.length < 5) continue;
+
+      for(const donor of members){
+        if(donor.locked) continue;
+        const st = studentById(donor.studentId);
+        if(!st) continue;
+
+        const avail = st.availability.filter(v => v.type===type);
+        for(const v of avail){
+          if(v.day===src.day && v.slot===src.slot) continue;
+          if(!moveWouldBeValid(donor,v.day,v.slot,arr)) continue;
+
+          const sourceBefore = countAt(type,src.day,src.slot,arr);
+          const targetBefore = countAt(type,v.day,v.slot,arr);
+          const sourceAfter = sourceBefore - 1;
+          const targetAfter = targetBefore + 1;
+
+          if(sourceAfter < 2) continue;
+          if(targetAfter === 1) continue;
+          if(targetAfter > capFor(type)) continue;
+
+          let gain = 0;
+          gain += cohortScore(type,sourceAfter) - cohortScore(type,sourceBefore);
+          gain += cohortScore(type,targetAfter) - cohortScore(type,targetBefore);
+          if(sourceBefore >= 5) gain += 12;
+          if(targetBefore === 1 && targetAfter === 2) gain += 16;
+          if(targetBefore === 0 && targetAfter === 2) gain += 20;
+          if(targetAfter >= 5) gain -= 10;
+
+          if(gain > 0){
+            donor.day = v.day;
+            donor.slot = v.slot;
+            moved++;
+            changed = true;
+            break outer;
+          }
+        }
+      }
+    }
+  }
+
+  return moved;
+}
+
+function rescueSolosByBorrowing(type, arr){
+  let changed = false;
+  const seen = new Set();
+
+  for(const a of arr.filter(x => x.type===type)){
+    const key = `${a.day}|${a.slot}`;
+    if(seen.has(key)) continue;
+    seen.add(key);
+
+    const size = countAt(type,a.day,a.slot,arr);
+    if(size !== 1) continue;
+
+    const donors = arr.filter(x => x.type===type && !(x.day===a.day && x.slot===a.slot))
+      .sort((x,y)=>countAt(type,y.day,y.slot,arr)-countAt(type,x.day,x.slot,arr));
+
+    for(const donor of donors){
+      if(donor.locked) continue;
+      const donorSize = countAt(type,donor.day,donor.slot,arr);
+      if(donorSize < 3) continue;
+      if(!isAvail(donor.studentId,type,a.day,a.slot)) continue;
+      if(!moveWouldBeValid(donor,a.day,a.slot,arr)) continue;
+
+      donor.day = a.day;
+      donor.slot = a.slot;
+      changed = true;
+      break;
+    }
+  }
+
+  return changed;
+}
+
+function waitlistRemainingSolos(type, arr){
+  const seen = new Set();
+  for(const a of [...arr].filter(x => x.type===type)){
+    const key = `${a.day}|${a.slot}`;
+    if(seen.has(key)) continue;
+    seen.add(key);
+
+    if(countAt(type,a.day,a.slot,arr) !== 1) continue;
+
+    const idx = arr.findIndex(x => x.id===a.id);
+    if(idx !== -1){
+      const removed = arr.splice(idx,1)[0];
+      state.waitlist.push({
+        id: removed.id,
+        studentId: removed.studentId,
+        studentName: removed.studentName,
+        type: removed.type,
+        unitIndex: removed.unitIndex,
+        locked: !!removed.locked,
+        reason: "Could not form 2+ cohort"
+      });
+    }
   }
 }
 
-students.forEach(st => {
-  ensureStudentShape(st);
-  ensureAvailabilityShape(st.name);
+function fixTypeCohorts(type, arr){
+  let passes = 0;
+  let totalMoves = 0;
+
+  while(passes < 8){
+    let changed = false;
+
+    const splitMoves = splitOversizedGroups(type,arr);
+    if(splitMoves){
+      totalMoves += splitMoves;
+      changed = true;
+    }
+
+    if(rescueSolosByBorrowing(type,arr)){
+      totalMoves += 1;
+      changed = true;
+    }
+
+    if(!changed) break;
+    passes++;
+  }
+
+  waitlistRemainingSolos(type,arr);
+  return totalMoves;
+}
+
+function autoBuild(){
+  state._lastUnscheduled = [];
+  state.waitlist = [];
+  setNotice("");
+
+  const assignments = [];
+  const reqs = buildRequests();
+
+  for(const r of reqs){
+    const st = studentById(r.studentId);
+    if(!st) continue;
+
+    const candidates = st.availability.filter(a => a.type===r.type);
+    if(!candidates.length){
+      state._lastUnscheduled.push({ name:r.studentName, type:r.type, reason:"No availability for this type" });
+      continue;
+    }
+
+    const viable = candidates.filter(c => {
+      if(!hasCapacity(r.type,c.day,c.slot,assignments)) return false;
+      if(isDoubleBooked(r.studentId,c.day,c.slot,assignments)) return false;
+      if(sessionsScheduledForStudentOnDay(r.studentId,c.day,assignments) >= st.maxPerDay) return false;
+      return true;
+    });
+
+    if(!viable.length){
+      state._lastUnscheduled.push({ name:r.studentName, type:r.type, reason:"No capacity, double-booking, or max/day reached" });
+      continue;
+    }
+
+    viable.sort((a,b)=>candidateScore(r.type,b.day,b.slot,assignments)-candidateScore(r.type,a.day,a.slot,assignments));
+    const best = viable[0];
+
+    assignments.push({
+      id: r.reqId,
+      studentId: r.studentId,
+      studentName: r.studentName,
+      type: r.type,
+      unitIndex: r.unitIndex,
+      day: best.day,
+      slot: best.slot,
+      locked: false
+    });
+  }
+
+  const groupMoves = fixTypeCohorts("Group", assignments);
+  const advancedMoves = fixTypeCohorts("Advanced", assignments);
+  const onlineMoves = fixTypeCohorts("Online", assignments);
+
+  state.schedule = assignments;
+  save();
+  renderSchedule();
+  setNotice(`Auto-build complete. Group moves: ${groupMoves}. Advanced moves: ${advancedMoves}. Online moves: ${onlineMoves}.`);
+}
+
+function reoptimizeSchedule(){
+  if(!state.schedule.length && !state.waitlist.length){
+    setNotice("No schedule to optimize.");
+    return;
+  }
+
+  const arr = [...state.schedule];
+  state.waitlist = [];
+
+  const groupMoves = fixTypeCohorts("Group", arr);
+  const advancedMoves = fixTypeCohorts("Advanced", arr);
+  const onlineMoves = fixTypeCohorts("Online", arr);
+
+  state.schedule = arr;
+  save();
+  renderSchedule();
+  setNotice(`Re-optimized. Group: ${groupMoves}. Advanced: ${advancedMoves}. Online: ${onlineMoves}.`);
+}
+
+function noteKey(day,slot,type){ return `${day}|${slot}|${type}`; }
+function getSessionNote(day,slot,type){ return state.sessionNotes[noteKey(day,slot,type)] || ""; }
+function setSessionNote(day,slot,type,value){
+  const k = noteKey(day,slot,type);
+  const trimmed = value.trim();
+  if(trimmed) state.sessionNotes[k] = trimmed;
+  else delete state.sessionNotes[k];
+  save();
+}
+function hasAnyNoteInSlot(day,slot){
+  return TYPES.some(type => !!getSessionNote(day,slot,type));
+}
+
+function getBucketCounts(day,slot){
+  return {
+    group: state.schedule.filter(a => a.day===day && a.slot===slot && a.type==="Group"),
+    adv: state.schedule.filter(a => a.day===day && a.slot===slot && a.type==="Advanced"),
+    priv: state.schedule.filter(a => a.day===day && a.slot===slot && a.type==="Private"),
+    online: state.schedule.filter(a => a.day===day && a.slot===slot && a.type==="Online")
+  };
+}
+
+function isOffDay(day){
+  return !state.schedule.some(a => a.day===day);
+}
+
+function previewText(arr){
+  if(!arr.length) return "—";
+  const names = arr.map(x => x.studentName + (x.locked ? "🔒" : ""));
+  const first = names.slice(0,2);
+  const rem = names.length - first.length;
+  return rem > 0 ? `${first.join(", ")} +${rem}` : first.join(", ");
+}
+
+function renderWeekGrid(){
+  const tf = state.ui.typeFilter;
+
+  let html = `<table class="weekTable"><thead><tr><th></th>${
+    DAYS.map(d => `<th class="${d===TODAY ? "todayCol":""}">${d}</th>`).join("")
+  }</tr></thead><tbody>`;
+
+  for(const slot of SLOTS){
+    html += `<tr><td>${slot}</td>`;
+    for(const day of DAYS){
+      const {group,adv,priv,online} = getBucketCounts(day,slot);
+      const conflict = isConflict(day,slot,state.schedule);
+      const lines = [];
+
+      if(group.length && (tf==="All" || tf==="Group")){
+        lines.push(`<div class="weekLine"><div class="weekLeft"><span class="weekTag">G</span><span class="weekText">${escapeHtml(previewText(group))}</span></div><span class="weekPill">${group.length}/${capFor("Group")}</span></div>`);
+      }
+      if(adv.length && (tf==="All" || tf==="Advanced")){
+        lines.push(`<div class="weekLine" style="margin-top:${lines.length?6:0}px"><div class="weekLeft"><span class="weekTag">A</span><span class="weekText">${escapeHtml(previewText(adv))}</span></div><span class="weekPill">${adv.length}/${capFor("Advanced")}</span></div>`);
+      }
+      if(priv.length && (tf==="All" || tf==="Private")){
+        lines.push(`<div class="weekLine" style="margin-top:${lines.length?6:0}px"><div class="weekLeft"><span class="weekTag">P</span><span class="weekText">${escapeHtml(previewText(priv))}</span></div><span class="weekPill">1/1</span></div>`);
+      }
+      if(online.length && (tf==="All" || tf==="Online")){
+        lines.push(`<div class="weekLine" style="margin-top:${lines.length?6:0}px"><div class="weekLeft"><span class="weekTag">O</span><span class="weekText">${escapeHtml(previewText(online))}</span></div><span class="weekPill">${online.length}/${capFor("Online")}</span></div>`);
+      }
+
+      const offDay = isOffDay(day);
+      html += `
+        <td class="${day===TODAY ? "todayCol":""}">
+          <button class="weekCellBtn ${lines.length ? "" : "weekEmpty"} ${offDay ? "offDay":""}" data-weektap="1" data-day="${day}" data-slot="${slot}">
+            ${lines.length ? lines.join("") : `<div class="weekEmptyText">—</div>`}
+            ${conflict ? `<div class="small muted" style="margin-top:8px;font-weight:900">⚠ CONFLICT</div>` : ""}
+            ${offDay ? `<div class="offDayLabel">OFF</div>` : ""}
+            ${hasAnyNoteInSlot(day,slot) ? `<div class="noteDot">●</div>` : ""}
+          </button>
+        </td>
+      `;
+    }
+    html += `</tr>`;
+  }
+
+  html += `</tbody></table>`;
+  document.getElementById("weekGrid").innerHTML = html;
+
+  document.querySelectorAll("[data-weektap='1']").forEach(btn=>{
+    btn.onclick = () => openDaySlot(btn.dataset.day, btn.dataset.slot);
+  });
+}
+
+const tabs = document.querySelectorAll(".tab");
+const pages = document.querySelectorAll(".page");
+tabs.forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    tabs.forEach(t => t.classList.remove("active"));
+    btn.classList.add("active");
+    pages.forEach(p => p.classList.remove("show"));
+    document.getElementById(btn.dataset.page).classList.add("show");
+  });
 });
-save();
 
-function addStudent(){
-  let name = document.getElementById("nameInput").value.trim();
-  if(!name) return;
+function setNotice(msg){
+  const el = document.getElementById("notice");
+  if(!msg){
+    el.textContent = "";
+    el.classList.add("hidden");
+    return;
+  }
+  el.textContent = msg;
+  el.classList.remove("hidden");
+}
 
-  students.push({
-    name,
-    group:1,
-    advanced:0,
-    private:0,
-    online:0
+function emptyEditorState(){
+  const state = {};
+  TYPES.forEach(type=>{
+    state[type] = {};
+    SLOTS.forEach(slot => state[type][slot] = new Set());
+  });
+  return state;
+}
+let editorState = emptyEditorState();
+
+function getCurrentStudent(){
+  const sid = document.getElementById("studentSelect").value;
+  return state.students.find(s => s.id===sid) || null;
+}
+
+function renderStudentSelect(filterText=""){
+  const select = document.getElementById("studentSelect");
+  const keep = select.value || "";
+  const ft = filterText.trim().toLowerCase();
+  const list = !ft ? state.students : state.students.filter(s => s.name.toLowerCase().includes(ft));
+
+  select.innerHTML = "";
+  if(!list.length){
+    const opt = document.createElement("option");
+    opt.value = "";
+    opt.textContent = ft ? "No matches" : "Add a student first";
+    select.appendChild(opt);
+    return;
+  }
+
+  list.forEach(s=>{
+    const opt = document.createElement("option");
+    opt.value = s.id;
+    opt.textContent = s.name;
+    select.appendChild(opt);
   });
 
-  availability[name] = {
-    Group:[],
-    Advanced:[],
-    Private:[],
-    Online:[]
-  };
+  if(keep && list.some(s => s.id===keep)) select.value = keep;
+  else select.value = list[0].id;
+}
+
+function hasAvailabilityForType(student,type){
+  return student.availability.some(a => a.type===type);
+}
+
+function studentEntryStatus(student){
+  const neededTypes = TYPES.filter(t => Number(student.packages[t]||0) > 0);
+  const enteredTypes = TYPES.filter(t => hasAvailabilityForType(student,t));
+
+  if(!neededTypes.length) return {text:"—",cls:"statusEmpty"};
+  if(!enteredTypes.length) return {text:"—",cls:"statusEmpty"};
+
+  const allDone = neededTypes.every(t => enteredTypes.includes(t));
+  return allDone ? {text:"✓",cls:"statusDone"} : {text:"•",cls:"statusPartial"};
+}
+
+function renderStudentQuickList(filterText=""){
+  const current = document.getElementById("studentSelect").value || "";
+  const ft = filterText.trim().toLowerCase();
+  const list = !ft ? state.students : state.students.filter(s => s.name.toLowerCase().includes(ft));
+
+  const wrap = document.getElementById("studentQuickList");
+  if(!list.length){
+    wrap.innerHTML = `<div class="small muted">No students yet.</div>`;
+    return;
+  }
+
+  wrap.innerHTML = list.map(student=>{
+    const status = studentEntryStatus(student);
+    return `
+      <button class="studentChip ${student.id===current ? "active":""}" data-studentchip="1" data-id="${student.id}">
+        <span>${escapeHtml(student.name)}</span>
+        <span class="studentStatus ${status.cls}">${status.text}</span>
+      </button>
+    `;
+  }).join("");
+
+  wrap.querySelectorAll("[data-studentchip='1']").forEach(btn=>{
+    btn.onclick = () => {
+      document.getElementById("studentSelect").value = btn.dataset.id;
+      loadEditorFromStudent();
+      renderStudentQuickList(document.getElementById("studentSearch").value || "");
+    };
+  });
+}
+
+function loadPackagesUI(){
+  const s = getCurrentStudent();
+  if(!s) return;
+  document.getElementById("pkgGroup").value = String(s.packages.Group);
+  document.getElementById("pkgAdvanced").value = String(s.packages.Advanced);
+  document.getElementById("pkgPrivate").value = String(s.packages.Private);
+  document.getElementById("pkgOnline").value = String(s.packages.Online);
+  document.getElementById("maxPerDay").value = String(s.maxPerDay);
+}
+
+function loadEditorFromStudent(){
+  const s = getCurrentStudent();
+  editorState = emptyEditorState();
+
+  if(!s){
+    document.getElementById("editingStudentLabel").textContent = "Select a student.";
+    renderAvailabilityEditor();
+    renderSummary();
+    return;
+  }
+
+  s.availability.forEach(a => {
+    if(editorState[a.type]?.[a.slot]) editorState[a.type][a.slot].add(a.day);
+  });
+
+  document.getElementById("editingStudentLabel").innerHTML =
+    `Editing: <b>${escapeHtml(s.name)}</b><span class="muted"> • Packages G=${s.packages.Group}, A=${s.packages.Advanced}, P=${s.packages.Private}, O=${s.packages.Online}</span>`;
+
+  loadPackagesUI();
+  renderAvailabilityEditor();
+  renderSummary();
+}
+
+function renderDayButtons(targetId, type, slot){
+  const target = document.getElementById(targetId);
+  target.innerHTML = DAYS.map(day=>{
+    const on = editorState[type][slot].has(day);
+    return `<button class="daySlotBtn ${on ? "on":""}" data-entryday="1" data-type="${type}" data-slot="${slot}" data-day="${day}">${day}</button>`;
+  }).join("");
+}
+
+function renderAvailabilityEditor(){
+  renderDayButtons("groupMorning","Group","Morning");
+  renderDayButtons("groupAfternoon","Group","Afternoon");
+  renderDayButtons("groupEvening","Group","Evening");
+  renderDayButtons("groupLateNight","Group","Late Night");
+
+  renderDayButtons("advancedMorning","Advanced","Morning");
+  renderDayButtons("advancedAfternoon","Advanced","Afternoon");
+  renderDayButtons("advancedEvening","Advanced","Evening");
+  renderDayButtons("advancedLateNight","Advanced","Late Night");
+
+  renderDayButtons("privateMorning","Private","Morning");
+  renderDayButtons("privateAfternoon","Private","Afternoon");
+  renderDayButtons("privateEvening","Private","Evening");
+  renderDayButtons("privateLateNight","Private","Late Night");
+
+  renderDayButtons("onlineMorning","Online","Morning");
+  renderDayButtons("onlineAfternoon","Online","Afternoon");
+  renderDayButtons("onlineEvening","Online","Evening");
+  renderDayButtons("onlineLateNight","Online","Late Night");
+
+  document.querySelectorAll("[data-entryday='1']").forEach(btn=>{
+    btn.onclick = () => {
+      const type = btn.dataset.type;
+      const slot = btn.dataset.slot;
+      const day = btn.dataset.day;
+      if(editorState[type][slot].has(day)) editorState[type][slot].delete(day);
+      else editorState[type][slot].add(day);
+      renderAvailabilityEditor();
+    };
+  });
+}
+
+function savePackages(){
+  const s = getCurrentStudent();
+  if(!s) return alert("Select a student first.");
+
+  s.packages.Group = Number(document.getElementById("pkgGroup").value);
+  s.packages.Advanced = Number(document.getElementById("pkgAdvanced").value);
+  s.packages.Private = Number(document.getElementById("pkgPrivate").value);
+  s.packages.Online = Number(document.getElementById("pkgOnline").value);
+  s.maxPerDay = Number(document.getElementById("maxPerDay").value);
+
+  TYPES.forEach(type=>{
+    if(s.packages[type] === 0){
+      s.availability = s.availability.filter(a => a.type !== type);
+      editorState[type] = {};
+      SLOTS.forEach(slot => editorState[type][slot] = new Set());
+    }
+  });
 
   save();
-  renderStudents();
+  loadEditorFromStudent();
+  renderAllStudentsSummary();
+  renderStudentQuickList(document.getElementById("studentSearch").value || "");
+  alert("Student settings saved ✅");
 }
 
-function build(){
+function saveAllAvailability(){
+  const s = getCurrentStudent();
+  if(!s) return alert("Select a student first.");
 
-  schedule = {};
-  waitlist = [];
-
-  days.forEach(d=>{
-    schedule[d] = {};
-    slots.forEach(s=>{
-      schedule[d][s] = {
-        Group:[],
-        Advanced:[],
-        Private:[],
-        Online:[]
-      };
-    });
-  });
-
-  students.forEach(st=>{
-    ensureStudentShape(st);
-    ensureAvailabilityShape(st.name);
-
-    const requests = [
-      { type:"Group", count: st.group },
-      { type:"Advanced", count: st.advanced },
-      { type:"Private", count: st.private },
-      { type:"Online", count: st.online }
-    ];
-
-    requests.forEach(req=>{
-      for(let i=0;i<req.count;i++){
-
-        let placed = false;
-        let av = availability[st.name][req.type];
-
-        for(let slotKey of av){
-          let [d,s] = slotKey.split("-");
-          let bucket = schedule[d][s][req.type];
-
-          if(req.type === "Private"){
-            if(bucket.length === 0){
-              bucket.push(st.name);
-              placed = true;
-              break;
-            }
-          }else{
-            if(bucket.length < 4){
-              bucket.push(st.name);
-              placed = true;
-              break;
-            }
-          }
-        }
-
-        if(!placed){
-          waitlist.push({name:st.name,type:req.type});
-        }
-
-      }
-    });
-  });
-
-  fixBalance("Group");
-  fixBalance("Advanced");
-  fixBalance("Online");
-
-  fixSingles("Group");
-  fixSingles("Advanced");
-  fixSingles("Online");
-
-  render();
-}
-
-function fixBalance(type){
-  for(let d in schedule){
-    for(let s in schedule[d]){
-      let g = schedule[d][s][type];
-      if(g.length === 5){
-        for(let d2 in schedule){
-          for(let s2 in schedule[d2]){
-            let g2 = schedule[d2][s2][type];
-            if(g2.length === 1){
-              let st = g2[0];
-              let av = availability[st][type];
-              if(av.includes(d+"-"+s)){
-                g.push(st);
-                g2.pop();
-                return;
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-function fixSingles(type){
-  for(let d in schedule){
-    for(let s in schedule[d]){
-      let g = schedule[d][s][type];
-      if(g.length === 1){
-        let st = g[0];
-        if(!borrow(st,d,s,type)){
-          waitlist.push({name:st,type});
-          schedule[d][s][type] = [];
-        }
-      }
-    }
-  }
-}
-
-function borrow(st,d,s,type){
-  for(let d2 in schedule){
-    for(let s2 in schedule[d2]){
-      let g2 = schedule[d2][s2][type];
-      if(g2.length >= 3){
-        for(let i=0;i<g2.length;i++){
-          let c = g2[i];
-          if(availability[c][type].includes(d+"-"+s)){
-            g2.splice(i,1);
-            schedule[d][s][type].push(c,st);
-            return true;
-          }
-        }
-      }
-    }
-  }
-  return false;
-}
-
-function render(){
-  let out = "";
-
-  days.forEach(d=>{
-    out += `<h3>${d}</h3>`;
-
-    slots.forEach(s=>{
-      let block = "";
-
-      types.forEach(t=>{
-        let g = schedule[d][s][t];
-        if(g.length > 0){
-          block += `<div><b>${t}</b>: `;
-          g.forEach(n=>{
-            let hint = getHint(n,t,d);
-            block += `<span class="student">${n}<span class="hint">${hint}</span></span>`;
-          });
-          block += `</div>`;
-        }
+  s.availability = [];
+  TYPES.forEach(type=>{
+    SLOTS.forEach(slot=>{
+      editorState[type][slot].forEach(day=>{
+        s.availability.push({ type, slot, day });
       });
-
-      if(block){
-        out += `<div class="slot"><b>${s}</b><br>${block}</div>`;
-      }
     });
   });
 
-  document.getElementById("schedule").innerHTML = out;
-  renderWaitlist();
+  save();
+  renderSummary();
+  renderAllStudentsSummary();
+  renderStudentQuickList(document.getElementById("studentSearch").value || "");
+  alert("Availability saved ✅");
 }
 
-function getHint(name,type,currentDay){
-  let av = availability[name][type];
-  let daysOnly = [...new Set(av.map(v=>v.split("-")[0]))];
-  return daysOnly.filter(d=>d!==currentDay).join(",");
+function clearSelectedStudentAvailability(){
+  const s = getCurrentStudent();
+  if(!s) return;
+  const ok = confirm(`Clear all availability for ${s.name}?`);
+  if(!ok) return;
+  s.availability = [];
+  editorState = emptyEditorState();
+  save();
+  loadEditorFromStudent();
+  renderStudentQuickList(document.getElementById("studentSearch").value || "");
+}
+
+function applyBulkAction(action){
+  const clearType = type => {
+    SLOTS.forEach(slot => editorState[type][slot] = new Set());
+  };
+
+  if(action === "group-clear"){ clearType("Group"); renderAvailabilityEditor(); return; }
+  if(action === "advanced-clear"){ clearType("Advanced"); renderAvailabilityEditor(); return; }
+  if(action === "private-clear"){ clearType("Private"); renderAvailabilityEditor(); return; }
+  if(action === "online-clear"){ clearType("Online"); renderAvailabilityEditor(); return; }
+
+  if(action === "group-weekday-evening"){ WEEKDAYS.forEach(d => editorState.Group["Evening"].add(d)); }
+  if(action === "group-all-evening"){ DAYS.forEach(d => editorState.Group["Evening"].add(d)); }
+  if(action === "advanced-weekday-afternoon"){ WEEKDAYS.forEach(d => editorState.Advanced["Afternoon"].add(d)); }
+  if(action === "private-weekday-morning"){ WEEKDAYS.forEach(d => editorState.Private["Morning"].add(d)); }
+  if(action === "online-late-night"){ DAYS.forEach(d => editorState.Online["Late Night"].add(d)); }
+
+  renderAvailabilityEditor();
+}
+
+function renderSummary(){
+  const s = getCurrentStudent();
+  const box = document.getElementById("summaryBox");
+  if(!s){
+    box.textContent = "Select a student.";
+    return;
+  }
+
+  const map = {};
+  TYPES.forEach(t => {
+    map[t] = {};
+    SLOTS.forEach(slot => map[t][slot] = new Set());
+  });
+
+  s.availability.forEach(a => map[a.type][a.slot].add(a.day));
+
+  const line = (type,slot)=>{
+    const arr = [...map[type][slot]];
+    return `${type} • ${slot}: ${arr.length ? arr.join(", ") : "(none)"}`;
+  };
+
+  box.innerHTML = `
+    <div><b>${escapeHtml(s.name)}</b></div>
+    <div style="margin-top:8px" class="small muted">
+      Packages/week: G=${s.packages.Group}, A=${s.packages.Advanced}, P=${s.packages.Private}, O=${s.packages.Online}<br>
+      Max/day: ${s.maxPerDay}
+    </div>
+    <div style="margin-top:10px">
+      ${TYPES.map(t => `
+        <div style="margin-top:10px">
+          ${SLOTS.map(slot => `<div>${escapeHtml(line(t,slot))}</div>`).join("")}
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
+function renderAllStudentsSummary(){
+  if(!state.students.length){
+    document.getElementById("allStudentsSummary").innerHTML = "No students yet.";
+    return;
+  }
+
+  const sortBy = document.getElementById("studentSummarySort").value;
+  const order = document.getElementById("studentSummaryOrder").value;
+
+  const formatAvail = (student,type,slot)=>{
+    const arr = student.availability.filter(a => a.type===type && a.slot===slot).map(a => a.day);
+    return arr.length ? arr.join(", ") : "—";
+  };
+
+  const sorted = [...state.students].sort((a,b)=>{
+    let aVal,bVal;
+    if(sortBy === "name"){
+      const r = a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+      return order === "desc" ? -r : r;
+    }
+    if(sortBy === "groupPkg"){ aVal = a.packages.Group; bVal = b.packages.Group; }
+    else if(sortBy === "advancedPkg"){ aVal = a.packages.Advanced; bVal = b.packages.Advanced; }
+    else if(sortBy === "privatePkg"){ aVal = a.packages.Private; bVal = b.packages.Private; }
+    else if(sortBy === "onlinePkg"){ aVal = a.packages.Online; bVal = b.packages.Online; }
+    else { aVal = a.maxPerDay; bVal = b.maxPerDay; }
+    const r = aVal - bVal;
+    return order === "desc" ? -r : r;
+  });
+
+  document.getElementById("allStudentsSummary").innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Student</th>
+          <th>Status</th>
+          <th>Packages</th>
+          <th>Max/day</th>
+          <th>Group</th>
+          <th>Advanced</th>
+          <th>Private</th>
+          <th>Online</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${sorted.map(student=>{
+          const status = studentEntryStatus(student);
+          return `
+            <tr>
+              <td class="nameCell">${escapeHtml(student.name)}</td>
+              <td class="pkgCell">${status.text}</td>
+              <td class="pkgCell">G=${student.packages.Group} · A=${student.packages.Advanced} · P=${student.packages.Private} · O=${student.packages.Online}</td>
+              <td class="pkgCell">${student.maxPerDay}</td>
+              <td>${escapeHtml(SLOTS.map(slot=>`${slot[0]}: ${formatAvail(student,"Group",slot)}`).join(" | "))}</td>
+              <td>${escapeHtml(SLOTS.map(slot=>`${slot[0]}: ${formatAvail(student,"Advanced",slot)}`).join(" | "))}</td>
+              <td>${escapeHtml(SLOTS.map(slot=>`${slot[0]}: ${formatAvail(student,"Private",slot)}`).join(" | "))}</td>
+              <td>${escapeHtml(SLOTS.map(slot=>`${slot[0]}: ${formatAvail(student,"Online",slot)}`).join(" | "))}</td>
+            </tr>
+          `;
+        }).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+function renderScheduleSummary(){
+  const seen = new Set();
+  let group=0, advanced=0, priv=0, online=0;
+
+  state.schedule.forEach(a=>{
+    const k = `${a.day}|${a.slot}|${a.type}`;
+    if(seen.has(k)) return;
+    seen.add(k);
+    if(a.type==="Group") group++;
+    if(a.type==="Advanced") advanced++;
+    if(a.type==="Private") priv++;
+    if(a.type==="Online") online++;
+  });
+
+  document.getElementById("scheduleSummary").innerHTML = `
+    <div class="summaryStat">Group: ${group}</div>
+    <div class="summaryStat">Advanced: ${advanced}</div>
+    <div class="summaryStat">Private: ${priv}</div>
+    <div class="summaryStat">Online: ${online}</div>
+    <div class="summaryStat">Total Sessions: ${group+advanced+priv+online}</div>
+  `;
+}
+
+function tagFor(type){
+  if(type==="Group") return "G";
+  if(type==="Advanced") return "A";
+  if(type==="Private") return "P";
+  return "O";
+}
+
+function getAlternativeDaysForAssignment(a){
+  const st = studentById(a.studentId);
+  if(!st) return [];
+  const seen = new Set();
+  const out = [];
+  st.availability.filter(v => v.type===a.type).forEach(v=>{
+    if(v.day===a.day) return;
+    if(seen.has(v.day)) return;
+    seen.add(v.day);
+    out.push(v.day);
+  });
+  return out;
+}
+
+function altDayHintText(a){
+  const days = getAlternativeDaysForAssignment(a);
+  if(!days.length) return "";
+  const shown = days.slice(0,2);
+  const extra = days.length - shown.length;
+  return extra > 0 ? `${shown.join(", ")} +${extra}` : shown.join(", ");
+}
+
+function chipBtnHTML(a){
+  const hint = altDayHintText(a);
+  return `
+    <button class="chipBtn" data-chip="1" data-id="${a.id}">
+      <span class="chipType">${tagFor(a.type)}</span>
+      ${escapeHtml(a.studentName)}
+      ${hint ? `<span class="altHint">· ${escapeHtml(hint)}</span>` : ""}
+      ${a.locked ? `<span class="lockMark">🔒</span>` : ""}
+    </button>
+  `;
+}
+
+let activeMoveAssignmentId = null;
+
+function activeAssignment(){
+  return state.schedule.find(x => x.id===activeMoveAssignmentId) || null;
+}
+
+function updateLockButton(){
+  const a = activeAssignment();
+  if(!a) return;
+  document.getElementById("lockSessionBtn").textContent = a.locked ? "Unlock session" : "Lock session";
+}
+
+function openMoveModal(assignmentId){
+  const a = state.schedule.find(x => x.id===assignmentId);
+  if(!a) return;
+  activeMoveAssignmentId = assignmentId;
+
+  document.getElementById("moveTitle").textContent = `Move ${tagFor(a.type)} ${a.studentName}${a.locked ? " 🔒" : ""}`;
+  document.getElementById("moveSubtitle").textContent = `Currently: ${a.day} ${a.slot}`;
+
+  const st = studentById(a.studentId);
+  if(!st) return;
+
+  const avail = st.availability.filter(v => v.type===a.type);
+  const uniq = [];
+  const seen = new Set();
+  for(const v of avail){
+    const k = `${v.day}|${v.slot}`;
+    if(seen.has(k)) continue;
+    seen.add(k);
+    uniq.push({ day:v.day, slot:v.slot });
+  }
+
+  let html = "";
+  if(!uniq.length){
+    html = `<div class="small muted">No availability saved for this type.</div>`;
+  }else{
+    html = uniq.map(o => {
+      const same = o.day===a.day && o.slot===a.slot;
+      const wouldDoubleBook = !same && isDoubleBooked(a.studentId,o.day,o.slot,state.schedule,a.id);
+      const perDayOK = same ? true : (sessionsScheduledForStudentOnDay(a.studentId,o.day,state.schedule) < st.maxPerDay || o.day===a.day);
+      const targetCount = countAt(a.type,o.day,o.slot,state.schedule) + (same ? 0 : 1);
+      const cap = capFor(a.type);
+
+      let warnText = "OK";
+      let warnLevel = "good";
+      let disabled = false;
+
+      if(a.type === "Private"){
+        if(!same && !hasCapacity("Private",o.day,o.slot,state.schedule)){ warnText = "Private taken"; warnLevel = "bad"; disabled = true; }
+        else if(wouldDoubleBook){ warnText = "Already booked"; warnLevel = "bad"; disabled = true; }
+        else if(!perDayOK){ warnText = "Max/day hit"; warnLevel = "bad"; disabled = true; }
+      }else{
+        if(wouldDoubleBook){ warnText = "Already booked"; warnLevel = "bad"; disabled = true; }
+        else if(!perDayOK){ warnText = "Max/day hit"; warnLevel = "bad"; disabled = true; }
+        else if(targetCount > cap){ warnText = `Temp overflow ${targetCount}/${cap}`; warnLevel = "warn"; }
+      }
+
+      return `
+        <div class="moveOption">
+          <div class="left">
+            <div style="font-weight:900">${o.day} ${o.slot}${same ? " (current)" : ""}</div>
+            <div class="small muted">${a.type} count after move: ${same ? countAt(a.type,o.day,o.slot,state.schedule) : targetCount}/${cap}</div>
+          </div>
+          <div class="right">
+            <span class="pill ${warnLevel}">${warnText}</span>
+            <button class="${disabled ? "btnGhost":"btn"}" data-move="1" data-day="${o.day}" data-slot="${o.slot}" ${disabled ? "disabled":""}>${same ? "OK":"Move"}</button>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  document.getElementById("moveOptions").innerHTML = html;
+  document.querySelectorAll("[data-move='1']").forEach(btn=>{
+    btn.onclick = () => attemptManualMove(activeMoveAssignmentId, btn.dataset.day, btn.dataset.slot);
+  });
+
+  updateLockButton();
+  document.getElementById("moveModal").classList.remove("hidden");
+}
+
+function closeMoveModal(){
+  activeMoveAssignmentId = null;
+  document.getElementById("moveModal").classList.add("hidden");
+}
+
+function attemptManualMove(assignmentId,newDay,newSlot){
+  const a = state.schedule.find(x => x.id===assignmentId);
+  if(!a) return;
+  const st = studentById(a.studentId);
+  if(!st) return;
+
+  if(a.day===newDay && a.slot===newSlot){
+    closeMoveModal();
+    return;
+  }
+
+  if(isDoubleBooked(a.studentId,newDay,newSlot,state.schedule,a.id)){
+    alert("That student is already booked in that day/slot.");
+    return;
+  }
+
+  if(newDay !== a.day && sessionsScheduledForStudentOnDay(a.studentId,newDay,state.schedule) >= st.maxPerDay){
+    alert("That move would exceed max/day.");
+    return;
+  }
+
+  if(a.type === "Private"){
+    if(!hasCapacity("Private",newDay,newSlot,state.schedule)){
+      alert("That private slot is already taken.");
+      return;
+    }
+  }else{
+    const cap = capFor(a.type);
+    const targetAfter = countAt(a.type,newDay,newSlot,state.schedule) + 1;
+    const originAfter = countAt(a.type,a.day,a.slot,state.schedule) - 1;
+
+    const overflow = targetAfter > cap;
+    const createsSolo = (originAfter > 0 && originAfter < 2) || (targetAfter > 0 && targetAfter < 2);
+
+    if(overflow){
+      const ok = confirm(`This move will temporarily overflow the ${a.type} session to ${targetAfter}/${cap}. Continue?`);
+      if(!ok) return;
+    }else if(createsSolo){
+      const ok = confirm("This move would create a solo cohort. Move anyway?");
+      if(!ok) return;
+    }
+  }
+
+  a.day = newDay;
+  a.slot = newSlot;
+  save();
+  renderSchedule();
+  closeMoveModal();
+  setNotice(`Moved ${a.studentName} (${a.type}) to ${newDay} ${newSlot}`);
+}
+
+function toggleActiveLock(){
+  const a = activeAssignment();
+  if(!a) return;
+  a.locked = !a.locked;
+  save();
+  renderSchedule();
+  updateLockButton();
+  setNotice(`${a.locked ? "Locked":"Unlocked"} ${a.studentName}'s ${a.type} session.`);
+}
+
+function cancelActiveSession(){
+  const a = activeAssignment();
+  if(!a) return;
+  if(!confirm(`Cancel ${a.studentName}'s ${a.type} session on ${a.day} ${a.slot}?`)) return;
+  state.schedule = state.schedule.filter(x => x.id!==a.id);
+  closeMoveModal();
+  save();
+  renderSchedule();
+  setNotice(`Canceled ${a.studentName}'s ${a.type} session.`);
+}
+
+function cancelStudentForWeek(){
+  const a = activeAssignment();
+  if(!a) return;
+  if(!confirm(`Cancel all of ${a.studentName}'s sessions for this week?`)) return;
+  state.schedule = state.schedule.filter(x => x.studentId!==a.studentId);
+  state.waitlist = state.waitlist.filter(x => x.studentId!==a.studentId);
+  closeMoveModal();
+  save();
+  renderSchedule();
+  setNotice(`Canceled ${a.studentName} for this week.`);
+}
+
+function resolveConflict(day,slot,keepType){
+  const slotItems = state.schedule.filter(a => a.day===day && a.slot===slot);
+  const present = [...new Set(slotItems.map(a => a.type))];
+  if(present.length < 2){
+    setNotice("No conflict found.");
+    return;
+  }
+
+  const others = present.filter(t => t !== keepType);
+  for(const t of others){
+    const items = slotItems.filter(a => a.type===t);
+    for(const item of items){
+      const st = studentById(item.studentId);
+      if(!st) continue;
+      const options = st.availability
+        .filter(a => a.type===item.type)
+        .map(a => ({day:a.day,slot:a.slot}))
+        .filter(o => !(o.day===day && o.slot===slot))
+        .filter(o => !isDoubleBooked(item.studentId,o.day,o.slot,state.schedule,item.id))
+        .filter(o => sessionsScheduledForStudentOnDay(item.studentId,o.day,state.schedule) < st.maxPerDay || o.day===item.day)
+        .filter(o => item.type==="Private" ? hasCapacity(item.type,o.day,o.slot,state.schedule) : true);
+
+      options.sort((a,b)=>candidateScore(item.type,b.day,b.slot,state.schedule)-candidateScore(item.type,a.day,a.slot,state.schedule));
+      if(options.length){
+        item.day = options[0].day;
+        item.slot = options[0].slot;
+      }
+    }
+  }
+
+  save();
+  renderSchedule();
+  setNotice(`Kept ${keepType} at ${day} ${slot}.`);
+}
+
+function validWaitlistTargets(item){
+  const st = studentById(item.studentId);
+  if(!st) return [];
+
+  const targets = [];
+  const seen = new Set();
+
+  st.availability.filter(a => a.type===item.type).forEach(a=>{
+    const k = `${a.day}|${a.slot}`;
+    if(seen.has(k)) return;
+    seen.add(k);
+
+    const alreadyBooked = isDoubleBooked(item.studentId,a.day,a.slot,state.schedule);
+    const perDayHit = sessionsScheduledForStudentOnDay(item.studentId,a.day,state.schedule) >= st.maxPerDay;
+    const current = countAt(item.type,a.day,a.slot,state.schedule);
+    const overflow = item.type !== "Private" && current >= capFor(item.type);
+    const privateTaken = item.type === "Private" && current >= 1;
+
+    if(alreadyBooked || perDayHit || privateTaken) return;
+    targets.push({ day:a.day, slot:a.slot, overflow });
+  });
+
+  return targets.sort((x,y)=>candidateScore(item.type,y.day,y.slot,state.schedule)-candidateScore(item.type,x.day,x.slot,state.schedule));
+}
+
+function placeFromWaitlist(waitId, day, slot, allowOverflow=false){
+  const idx = state.waitlist.findIndex(w => w.id===waitId);
+  if(idx === -1) return;
+
+  const item = state.waitlist[idx];
+  const st = studentById(item.studentId);
+  if(!st) return;
+
+  if(isDoubleBooked(item.studentId,day,slot,state.schedule)){
+    alert("Student is already booked in that slot.");
+    return;
+  }
+  if(sessionsScheduledForStudentOnDay(item.studentId,day,state.schedule) >= st.maxPerDay){
+    alert("That would exceed max/day.");
+    return;
+  }
+
+  const current = countAt(item.type,day,slot,state.schedule);
+  if(item.type === "Private"){
+    if(current >= 1){ alert("Private slot already taken."); return; }
+  }else{
+    if(current >= capFor(item.type) && !allowOverflow){ alert("That session is already full."); return; }
+  }
+
+  state.schedule.push({
+    id: item.id,
+    studentId: item.studentId,
+    studentName: item.studentName,
+    type: item.type,
+    unitIndex: item.unitIndex,
+    day, slot,
+    locked: !!item.locked
+  });
+
+  state.waitlist.splice(idx,1);
+  save();
+  renderSchedule();
+  setNotice(`Placed ${item.studentName} into ${day} ${slot}.`);
+}
+
+function renderSchedule(){
+  const showOnlyFilled = state.ui.showFilter === "Filled";
+  const tf = state.ui.typeFilter;
+
+  const buckets = {};
+  DAYS.forEach(d=>{
+    buckets[d] = {};
+    SLOTS.forEach(s=>{
+      buckets[d][s] = { Group:[], Advanced:[], Private:[], Online:[] };
+    });
+  });
+  state.schedule.forEach(a => buckets[a.day][a.slot][a.type].push(a));
+
+  const daysToRender = showOnlyFilled ? DAYS.filter(d => state.schedule.some(a => a.day===d) || isOffDay(d)) : DAYS;
+
+  document.getElementById("scheduleGrid").innerHTML = daysToRender.map(d=>{
+    const total = state.schedule.filter(a => a.day===d).length;
+    const offDay = isOffDay(d);
+
+    const slotsHtml = SLOTS.map(slot=>{
+      const grp = buckets[d][slot].Group;
+      const adv = buckets[d][slot].Advanced;
+      const prv = buckets[d][slot].Private;
+      const online = buckets[d][slot].Online;
+      const slotHas = grp.length + adv.length + prv.length + online.length;
+      if(showOnlyFilled && slotHas===0 && !offDay) return "";
+
+      const present = typesPresent(d,slot,state.schedule);
+      const conflict = present.length >= 2;
+      const conflictButtons = present.map(t => `
+        <button class="${t==="Group" ? "btn":"btnGhost"}" data-resolve="1" data-keep="${t}" data-day="${d}" data-slot="${slot}">
+          Keep ${t} → Move others
+        </button>
+      `).join("");
+
+      const blocks = [];
+
+      if(grp.length && (tf==="All" || tf==="Group")){
+        const note = getSessionNote(d,slot,"Group");
+        blocks.push(`
+          <div class="typeBlock">
+            <div class="typeHeader"><div class="typeHeaderLeft"><span>Group</span><span class="small muted">(${grp.length}/${capFor("Group")})</span></div></div>
+            <div class="chipWrap">${grp.map(chipBtnHTML).join("")}</div>
+            <textarea class="noteEditor" data-note-editor="1" data-day="${d}" data-slot="${slot}" data-type="Group" placeholder="Session note...">${escapeHtml(note)}</textarea>
+          </div>
+        `);
+      }
+
+      if(adv.length && (tf==="All" || tf==="Advanced")){
+        const note = getSessionNote(d,slot,"Advanced");
+        blocks.push(`
+          <div class="typeBlock">
+            <div class="typeHeader"><div class="typeHeaderLeft"><span>Advanced</span><span class="small muted">(${adv.length}/${capFor("Advanced")})</span></div></div>
+            <div class="chipWrap">${adv.map(chipBtnHTML).join("")}</div>
+            <textarea class="noteEditor" data-note-editor="1" data-day="${d}" data-slot="${slot}" data-type="Advanced" placeholder="Session note...">${escapeHtml(note)}</textarea>
+          </div>
+        `);
+      }
+
+      if(prv.length && (tf==="All" || tf==="Private")){
+        const note = getSessionNote(d,slot,"Private");
+        blocks.push(`
+          <div class="typeBlock">
+            <div class="typeHeader"><div class="typeHeaderLeft"><span>Private</span></div></div>
+            <div class="chipWrap">${prv.map(chipBtnHTML).join("")}</div>
+            <textarea class="noteEditor" data-note-editor="1" data-day="${d}" data-slot="${slot}" data-type="Private" placeholder="Session note...">${escapeHtml(note)}</textarea>
+          </div>
+        `);
+      }
+
+      if(online.length && (tf==="All" || tf==="Online")){
+        const note = getSessionNote(d,slot,"Online");
+        blocks.push(`
+          <div class="typeBlock">
+            <div class="typeHeader"><div class="typeHeaderLeft"><span>Online</span><span class="small muted">(${online.length}/${capFor("Online")})</span></div></div>
+            <div class="chipWrap">${online.map(chipBtnHTML).join("")}</div>
+            <textarea class="noteEditor" data-note-editor="1" data-day="${d}" data-slot="${slot}" data-type="Online" placeholder="Session note...">${escapeHtml(note)}</textarea>
+          </div>
+        `);
+      }
+
+      return `
+        <details class="slotDetails" data-slot="${slot}" ${slotHas ? "open":""}>
+          <summary class="slotSummary">
+            <span>${slot}</span>
+            <span class="badge">${conflict ? "⚠ Conflict" : slotHas ? "OK" : offDay ? "OFF" : "Empty"}</span>
+          </summary>
+          <div class="slotBody">
+            ${conflict ? `<div class="conflictBox"><div class="conflictTitle">⚠ Conflict: ${escapeHtml(present.join(" + "))}</div><div class="conflictBtns">${conflictButtons}</div></div>` : ""}
+            ${blocks.length ? blocks.join("") : `<div class="small muted" style="margin-top:10px">${offDay ? "Off day." : "(Hidden by filter or empty)"}</div>`}
+          </div>
+        </details>
+      `;
+    }).join("");
+
+    return `
+      <details class="dayDetails ${offDay ? "offDayDetails":""}" data-day="${d}" ${total ? "open":""}>
+        <summary class="daySummary">
+          <span>${d}${d===TODAY ? " • Today":""}${offDay ? " • OFF":""}</span>
+          <span class="small muted">${total ? `${total} • tap to collapse` : `${offDay ? "0 • off day" : "0 • empty"}`}</span>
+        </summary>
+        <div class="dayBody">${slotsHtml}</div>
+      </details>
+    `;
+  }).join("");
+
+  document.querySelectorAll("[data-resolve='1']").forEach(btn=>{
+    btn.onclick = () => resolveConflict(btn.dataset.day,btn.dataset.slot,btn.dataset.keep);
+  });
+
+  document.querySelectorAll("[data-chip='1']").forEach(btn=>{
+    btn.onclick = () => openMoveModal(btn.dataset.id);
+  });
+
+  document.querySelectorAll("[data-note-editor='1']").forEach(el=>{
+    el.addEventListener("change", ()=>{
+      setSessionNote(el.dataset.day,el.dataset.slot,el.dataset.type,el.value);
+      renderWeekGrid();
+    });
+  });
+
+  renderWaitlist();
+  renderUnscheduled();
+  renderWeekGrid();
+  renderScheduleSummary();
 }
 
 function renderWaitlist(){
-  let out = "";
+  const box = document.getElementById("waitlistBox");
+  if(!state.waitlist.length){
+    box.textContent = "None 🎉";
+    return;
+  }
 
-  waitlist.forEach(w=>{
-    let av = availability[w.name][w.type];
+  box.innerHTML = state.waitlist.map(item=>{
+    const targets = validWaitlistTargets(item);
+    return `
+      <div class="waitItem">
+        <div>
+          <div style="font-weight:900">${escapeHtml(item.studentName)} — ${escapeHtml(item.type)}${item.locked ? " 🔒":""}</div>
+          <div class="small muted">${escapeHtml(item.reason || "Waitlisted")}</div>
+        </div>
+        <div class="waitActions">
+          ${
+            targets.length
+              ? targets.map(t => `
+                <button class="waitBtn ${t.overflow ? "warn":""}" data-placewait="1" data-id="${item.id}" data-day="${t.day}" data-slot="${t.slot}" data-overflow="${t.overflow ? "1":"0"}">
+                  ${t.day} ${t.slot}${t.overflow ? " (overflow)" : ""}
+                </button>
+              `).join("")
+              : `<span class="small muted">No manual placement options right now.</span>`
+          }
+        </div>
+      </div>
+    `;
+  }).join("");
 
-    av.forEach(slotKey=>{
-      let [d,s] = slotKey.split("-");
-      let bucket = schedule[d][s][w.type];
+  box.querySelectorAll("[data-placewait='1']").forEach(btn=>{
+    btn.onclick = () => {
+      const allowOverflow = btn.dataset.overflow === "1";
+      if(allowOverflow){
+        const ok = confirm(`This will temporarily overflow ${btn.dataset.day} ${btn.dataset.slot}. Continue?`);
+        if(!ok) return;
+      }
+      placeFromWaitlist(btn.dataset.id,btn.dataset.day,btn.dataset.slot,allowOverflow);
+    };
+  });
+}
 
-      if(w.type === "Private" && bucket.length > 0) return;
-      if((w.type === "Group" || w.type === "Advanced" || w.type === "Online") && bucket.length >= 4) return;
+function renderUnscheduled(){
+  const box = document.getElementById("unscheduledList");
+  if(!state._lastUnscheduled.length){
+    box.textContent = "None 🎉";
+    return;
+  }
+  box.innerHTML = `<ul class="small muted">${
+    state._lastUnscheduled.map(u => `<li><b>${escapeHtml(u.name)}</b> — ${escapeHtml(u.type)} • ${escapeHtml(u.reason)}</li>`).join("")
+  }</ul>`;
+}
 
-      out += `<button onclick="place('${w.name}','${w.type}','${d}','${s}')">${w.name} → ${w.type} → ${d} ${s}</button>`;
+function exportHeaderText(){
+  const custom = (document.getElementById("weekLabelInput").value || state.weekLabel || "").trim();
+  return custom || "Weekly Schedule";
+}
+
+function buildFullExportText(){
+  const parts = [exportHeaderText(),""];
+
+  DAYS.forEach(day=>{
+    parts.push(day.toUpperCase());
+
+    const items = state.schedule
+      .filter(a => a.day===day)
+      .sort((a,b)=>{
+        const order = SLOTS;
+        const sa = order.indexOf(a.slot);
+        const sb = order.indexOf(b.slot);
+        if(sa !== sb) return sa - sb;
+        return a.type.localeCompare(b.type);
+      });
+
+    if(!items.length){
+      parts.push("OFF","");
+      return;
+    }
+
+    const groups = {};
+    items.forEach(a=>{
+      const k = `${a.slot}|${a.type}`;
+      if(!groups[k]) groups[k] = [];
+      groups[k].push(a);
+    });
+
+    Object.entries(groups).forEach(([k,arr])=>{
+      const [slot,type] = k.split("|");
+      parts.push(`${slot} – ${type}`);
+      const note = getSessionNote(day,slot,type);
+      if(note) parts.push(`Note: ${note}`);
+      arr.sort((a,b)=>a.studentName.localeCompare(b.studentName)).forEach(a=>parts.push(a.studentName));
+      parts.push("");
     });
   });
 
-  document.getElementById("waitlist").innerHTML = out || "None";
+  return parts.join("\n").trim();
 }
 
-function place(name,type,d,s){
-  let bucket = schedule[d][s][type];
+function buildCompactExportText(){
+  const parts = [exportHeaderText(),""];
 
-  if(type === "Private" && bucket.length > 0){
-    alert("Private slot taken");
-    return;
-  }
+  DAYS.forEach(day=>{
+    const items = state.schedule.filter(a => a.day===day);
+    if(!items.length){
+      parts.push(`${day}: OFF`);
+      return;
+    }
 
-  if((type === "Group" || type === "Advanced" || type === "Online") && bucket.length >= 4){
-    alert("Slot full");
-    return;
-  }
+    const groups = {};
+    items.forEach(a=>{
+      const k = `${a.slot}|${a.type}`;
+      if(!groups[k]) groups[k] = [];
+      groups[k].push(a.studentName);
+    });
 
-  bucket.push(name);
-
-  waitlist = waitlist.filter(w => !(w.name===name && w.type===type));
-
-  render();
-}
-
-function renderStudents(){
-  let out = "";
-  students.forEach(s=>{
-    out += `<div>${s.name} — G:${s.group} A:${s.advanced} P:${s.private} O:${s.online}</div>`;
+    parts.push(day);
+    Object.entries(groups).forEach(([k,names])=>{
+      const [slot,type] = k.split("|");
+      parts.push(`${slot} – ${type}: ${names.sort().join(", ")}`);
+      const note = getSessionNote(day,slot,type);
+      if(note) parts.push(`Note: ${note}`);
+    });
+    parts.push("");
   });
-  document.getElementById("students").innerHTML = out;
+
+  return parts.join("\n").trim();
 }
 
-renderStudents();
-build();
+function exportData(){
+  document.getElementById("jsonBox").value = JSON.stringify(state,null,2);
+}
 
+function importData(){
+  try{
+    const parsed = JSON.parse(document.getElementById("jsonBox").value);
+    if(!parsed || !Array.isArray(parsed.students)) throw new Error("Bad format");
+    parsed.students.forEach(ensureStudentDefaults);
+
+    state = {
+      ...defaultState(),
+      ...parsed,
+      settings: { ...defaultState().settings, ...(parsed.settings || {}) },
+      ui: { ...defaultState().ui, ...(parsed.ui || {}) },
+      sessionNotes: { ...(parsed.sessionNotes || {}) },
+      weekLabel: parsed.weekLabel || ""
+    };
+
+    save();
+    init();
+    alert("Imported ✅");
+  }catch(e){
+    alert("Import failed: " + e.message);
+  }
+}
+
+document.getElementById("todayBtn").onclick = () => openDaySlot(TODAY,"Morning");
+document.getElementById("generateBtn").onclick = autoBuild;
+document.getElementById("reoptimizeBtn").onclick = reoptimizeSchedule;
+document.getElementById("clearScheduleBtn").onclick = () => {
+  if(!confirm("Clear schedule?")) return;
+  state.schedule = [];
+  state.waitlist = [];
+  state._lastUnscheduled = [];
+  state.sessionNotes = {};
+  save();
+  setNotice("");
+  renderSchedule();
+};
+
+document.getElementById("studentSearch").oninput = () => {
+  const text = document.getElementById("studentSearch").value || "";
+  renderStudentSelect(text);
+  renderStudentQuickList(text);
+
+  const list = !text.trim() ? state.students : state.students.filter(s => s.name.toLowerCase().includes(text.trim().toLowerCase()));
+  if(list.length && !list.some(s => s.id===document.getElementById("studentSelect").value)){
+    document.getElementById("studentSelect").value = list[0].id;
+    loadEditorFromStudent();
+  }
+};
+
+document.getElementById("studentSelect").onchange = () => {
+  loadEditorFromStudent();
+  renderStudentQuickList(document.getElementById("studentSearch").value || "");
+};
+
+document.getElementById("addStudentBtn").onclick = () => {
+  const name = document.getElementById("studentName").value.trim();
+  if(!name) return alert("Enter a student name.");
+  if(state.students.some(s => s.name.toLowerCase()===name.toLowerCase())) return alert("That student already exists.");
+
+  const s = {
+    id: uid(),
+    name,
+    availability: [],
+    packages: { Group:1, Advanced:0, Private:0, Online:0 },
+    maxPerDay: 1
+  };
+
+  state.students.push(s);
+  save();
+
+  document.getElementById("studentName").value = "";
+  renderStudentSelect(document.getElementById("studentSearch").value || "");
+  renderStudentQuickList(document.getElementById("studentSearch").value || "");
+  document.getElementById("studentSelect").value = s.id;
+  loadEditorFromStudent();
+  renderAllStudentsSummary();
+};
+
+document.getElementById("savePackagesBtn").onclick = savePackages;
+document.getElementById("saveAllAvailabilityBtn").onclick = saveAllAvailability;
+document.getElementById("clearSelectedStudentAvailabilityBtn").onclick = clearSelectedStudentAvailability;
+
+document.querySelectorAll("[data-bulk]").forEach(btn=>{
+  btn.onclick = () => applyBulkAction(btn.dataset.bulk);
+});
+
+document.getElementById("groupCap").addEventListener("change", ()=>{
+  state.settings.groupCap = clampInt(document.getElementById("groupCap").value,2,6);
+  save(); renderSchedule();
+});
+document.getElementById("advancedCap").addEventListener("change", ()=>{
+  state.settings.advancedCap = clampInt(document.getElementById("advancedCap").value,2,4);
+  save(); renderSchedule();
+});
+document.getElementById("onlineCap").addEventListener("change", ()=>{
+  state.settings.onlineCap = clampInt(document.getElementById("onlineCap").value,2,4);
+  save(); renderSchedule();
+});
+document.getElementById("preferredDays").addEventListener("change", ()=>{
+  state.settings.preferredDays = [...document.getElementById("preferredDays").options].filter(o=>o.selected).map(o=>o.value);
+  save(); renderSchedule();
+});
+
+document.getElementById("studentSummarySort").addEventListener("change", renderAllStudentsSummary);
+document.getElementById("studentSummaryOrder").addEventListener("change", renderAllStudentsSummary);
+
+document.getElementById("startNewWeekBtn").onclick = () => {
+  const ok = confirm(
+    "Start a new week?\n\n" +
+    "This will clear:\n" +
+    "• all student availability\n" +
+    "• current schedule\n" +
+    "• waitlist\n" +
+    "• unscheduled items\n" +
+    "• session notes\n" +
+    "• week label\n\n" +
+    "It will keep:\n" +
+    "• student names\n" +
+    "• packages\n" +
+    "• max/day settings\n" +
+    "• app settings"
+  );
+  if(!ok) return;
+
+  state.students.forEach(s => { s.availability = []; });
+  state.schedule = [];
+  state.waitlist = [];
+  state._lastUnscheduled = [];
+  state.sessionNotes = {};
+  state.weekLabel = "";
+  save();
+  setNotice("Started a new week. Students and settings kept.");
+  init();
+};
+
+document.getElementById("exportBtn").onclick = exportData;
+document.getElementById("importBtn").onclick = importData;
+
+document.getElementById("weekLabelInput").addEventListener("input", ()=>{
+  state.weekLabel = document.getElementById("weekLabelInput").value;
+  save();
+});
+
+document.getElementById("buildFullExportBtn").onclick = ()=>{
+  document.getElementById("exportScheduleBox").value = buildFullExportText();
+};
+document.getElementById("buildCompactExportBtn").onclick = ()=>{
+  document.getElementById("exportScheduleBox").value = buildCompactExportText();
+};
+document.getElementById("copyExportBtn").onclick = async ()=>{
+  const text = document.getElementById("exportScheduleBox").value.trim();
+  if(!text) return alert("Build an export first.");
+  try{
+    await navigator.clipboard.writeText(text);
+    setNotice("Copied schedule export.");
+  }catch{
+    const box = document.getElementById("exportScheduleBox");
+    box.select();
+    document.execCommand("copy");
+    setNotice("Copied schedule export.");
+  }
+};
+
+document.getElementById("moveBackdrop").onclick = closeMoveModal;
+document.getElementById("closeMove").onclick = closeMoveModal;
+document.getElementById("lockSessionBtn").onclick = toggleActiveLock;
+document.getElementById("cancelSessionBtn").onclick = cancelActiveSession;
+document.getElementById("cancelWeekBtn").onclick = cancelStudentForWeek;
+
+function renderFilters(){
+  document.getElementById("showFilterBtns").innerHTML = ["All","Filled"].map(v =>
+    `<button class="tapBtn ${state.ui.showFilter===v ? "on":""}" data-show="${v}">${v}</button>`
+  ).join("");
+
+  document.getElementById("typeFilterBtns").innerHTML = ["All",...TYPES].map(v =>
+    `<button class="tapBtn ${state.ui.typeFilter===v ? "on":""}" data-tf="${v}">${v}</button>`
+  ).join("");
+
+  document.querySelectorAll("[data-show]").forEach(btn=>{
+    btn.onclick = () => {
+      state.ui.showFilter = btn.dataset.show;
+      save();
+      renderFilters();
+      renderSchedule();
+    };
+  });
+
+  document.querySelectorAll("[data-tf]").forEach(btn=>{
+    btn.onclick = () => {
+      state.ui.typeFilter = btn.dataset.tf;
+      save();
+      renderFilters();
+      renderSchedule();
+    };
+  });
+}
+
+function openDaySlot(day,slot){
+  document.querySelector(`.tab[data-page="schedulePage"]`).click();
+  const dayDetails = document.querySelector(`.dayDetails[data-day="${day}"]`);
+  if(dayDetails){
+    dayDetails.open = true;
+    const slotDetails = dayDetails.querySelector(`.slotDetails[data-slot="${slot}"]`);
+    if(slotDetails) slotDetails.open = true;
+    dayDetails.scrollIntoView({behavior:"smooth",block:"start"});
+  }
+}
+
+function init(){
+  state.students.forEach(ensureStudentDefaults);
+
+  document.getElementById("groupCap").value = clampInt(state.settings.groupCap,2,6);
+  document.getElementById("advancedCap").value = clampInt(state.settings.advancedCap,2,4);
+  document.getElementById("onlineCap").value = clampInt(state.settings.onlineCap,2,4);
+  [...document.getElementById("preferredDays").options].forEach(opt=>{
+    opt.selected = (state.settings.preferredDays || []).includes(opt.value);
+  });
+
+  renderFilters();
+  renderStudentSelect(document.getElementById("studentSearch").value || "");
+  renderStudentQuickList(document.getElementById("studentSearch").value || "");
+  renderAvailabilityEditor();
+  renderAllStudentsSummary();
+  renderSchedule();
+
+  document.getElementById("exportScheduleBox").value = "";
+  document.getElementById("weekLabelInput").value = state.weekLabel || "";
+
+  if(state.students.length && document.getElementById("studentSelect").value){
+    loadEditorFromStudent();
+  }else{
+    document.getElementById("editingStudentLabel").textContent = "Select a student.";
+    renderSummary();
+  }
+}
+
+init();
 </script>
-
 </body>
 </html>
