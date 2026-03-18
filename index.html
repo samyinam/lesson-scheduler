@@ -1,1226 +1,187 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Sam's Scheduler</title>
-<style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson Scheduler</title>
 
-*{box-sizing:border-box}
-html,body{height:100%}
-body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.25;background:#0f1115;color:#f3f4f6}
-button,input,select,textarea{font:inherit}
-input,select,textarea{color:#f3f4f6;background:#141821;border:1px solid rgba(255,255,255,.12)}
-input::placeholder,textarea::placeholder{color:rgba(255,255,255,.45)}
-.container{max-width:980px;margin:0 auto;padding:14px 14px 90px}
-.page{display:none}.page.show{display:block}
-.pageHeader{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:10px 0 8px}
-.pageHeader h2{margin:0;font-size:18px;font-weight:900}
-.topbar{position:sticky;top:0;z-index:50;background:rgba(15,17,21,.88);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.08);padding:10px 12px}
-.brand{display:flex;align-items:center;gap:10px}
-.logo{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.12);font-weight:900}
-.title{font-weight:900;font-size:14px}
-.subtitle{font-size:12px;margin-top:2px}
-.tabs{display:flex;gap:8px;margin-top:10px}
-.tab{flex:1;padding:10px 10px;border-radius:12px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.06);color:#f3f4f6;font-weight:900;cursor:pointer}
-.tab.active{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.18)}
-.card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);border-radius:16px;padding:12px;margin-top:12px}
-h3{font-size:14px;font-weight:900}
-.muted{color:rgba(255,255,255,.70)} .small{font-size:12px} .dangerText{color:#ff6b6b} .grow{flex:1}
-label{display:block;font-size:12px;font-weight:900;color:rgba(255,255,255,.75)}
-input,select{width:100%;margin-top:6px;padding:10px 10px;border-radius:12px;outline:none}
-select{appearance:none}
-textarea{width:100%;min-height:120px;margin-top:12px;padding:10px;border-radius:14px;outline:none;resize:vertical}
-.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
-.row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
-.primary,.ghost,.tapBtn,.tinyBtn{border-radius:14px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);color:#f3f4f6;padding:10px 12px;font-weight:900;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.primary{background:rgba(99,102,241,.85);border-color:rgba(99,102,241,.65)}
-.primary:active,.ghost:active,.tapBtn:active,.tinyBtn:active{transform:translateY(1px)}
-.ghost{background:rgba(255,255,255,.06)}
-.tinyBtn{padding:5px 9px;border-radius:999px;font-size:11px;background:rgba(255,255,255,.06)}
-.btnGroup{display:flex;flex-wrap:wrap;gap:8px}
-.tapBtn.on{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.20)}
-.filterRow{display:flex;gap:12px;flex-wrap:wrap}
-.filterBlock{flex:1;min-width:220px}
-.notice{margin-top:10px;padding:10px 12px;border-radius:14px;border:1px solid rgba(99,102,241,.45);background:rgba(99,102,241,.18);font-size:12px;font-weight:900}
-.hidden{display:none!important}
-.summaryStats{display:flex;flex-wrap:wrap;gap:8px}
-.summaryStat{padding:8px 10px;border-radius:12px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.04);font-size:12px;font-weight:900}
-.studentQuickList{display:flex;flex-wrap:wrap;gap:8px}
-.studentChip{display:inline-flex;align-items:center;gap:8px;padding:9px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);cursor:pointer;font-size:12px;font-weight:900}
-.studentChip.active{background:rgba(99,102,241,.22);border-color:rgba(99,102,241,.40)}
-.studentStatus{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 6px;border-radius:999px;font-size:11px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.10)}
-.statusDone{background:rgba(34,197,94,.16);border-color:rgba(34,197,94,.30)}
-.statusPartial{background:rgba(250,204,21,.16);border-color:rgba(250,204,21,.30)}
-.statusEmpty{background:rgba(255,255,255,.08)}
-.entryHeader{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
-.settingsDetails{border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:10px;background:rgba(0,0,0,.10)}
-.settingsSummary{list-style:none;cursor:pointer;font-weight:900}
-.settingsSummary::-webkit-details-marker{display:none}
-.typePanel{margin-top:14px;padding:12px;border-radius:16px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.05)}
-.typePanelSummary{list-style:none;cursor:pointer;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;font-weight:900}
-.typePanelSummary::-webkit-details-marker{display:none}
-.typePanelBody{margin-top:12px}
-.typePanelTitle{font-weight:900;font-size:14px}
-.countBtn{margin-left:8px;padding:4px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);color:#f3f4f6;font-size:12px;font-weight:900;cursor:pointer}
-.quickActions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-.availabilitySection{margin-top:12px}
-.availabilityRowHeader{font-size:12px;font-weight:900;color:rgba(255,255,255,.84);margin-bottom:8px}
-.gridDays{display:grid;gap:8px}
-.gridDays7{grid-template-columns:repeat(7,minmax(0,1fr))}
-.daySlotBtn{min-height:40px;padding:8px 4px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#f3f4f6;font-size:12px;font-weight:900;cursor:pointer}
-.daySlotBtn.on{background:rgba(99,102,241,.28);border-color:rgba(99,102,241,.45)}
-.weekScroll{overflow-x:auto;padding-bottom:6px}
-.weekGrid{min-width:820px}
-.weekTable{width:100%;border-collapse:separate;border-spacing:8px}
-.weekTable th,.weekTable td{vertical-align:top}
-.weekTable thead th{font-size:12px;font-weight:900;color:rgba(255,255,255,.75);text-align:left}
-.weekTable tbody td:first-child{font-weight:900;color:rgba(255,255,255,.75);font-size:12px;padding-top:10px}
-.weekTD{padding:0}
-.weekCellBtn{width:100%;min-width:150px;text-align:left;padding:10px 10px;border-radius:14px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.06);color:#f3f4f6;position:relative}
-.weekCellBtn.weekEmpty{opacity:.85}
-.weekCellBtn.offDay{background:rgba(34,197,94,.10);border-color:rgba(34,197,94,.20)}
-.weekEmptyText{font-weight:900;color:rgba(255,255,255,.45);padding:10px 0}
-.offDayLabel{font-size:11px;font-weight:900;color:rgba(134,239,172,.95);margin-top:6px}
-.weekLine{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.weekLeft{display:flex;align-items:center;gap:8px;min-width:0}
-.weekTag{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:8px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.12);font-weight:900;font-size:12px}
-.weekText{font-size:12px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}
-.weekPill{font-size:11px;font-weight:900;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.12)}
-.todayCol{box-shadow:0 0 0 1px rgba(99,102,241,.35) inset;border-radius:12px}
-.noteDot{position:absolute;top:6px;right:8px;font-size:11px;font-weight:900;color:rgba(255,255,255,.88)}
-.scheduleGrid{margin-top:12px;display:flex;flex-direction:column;gap:10px}
-.dayDetails,.slotDetails{border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.06)}
-.dayDetails.offDayDetails{background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.18)}
-.daySummary{list-style:none;cursor:pointer;padding:12px 12px;display:flex;justify-content:space-between;align-items:center;gap:10px;font-weight:900}
-.daySummary::-webkit-details-marker{display:none}
-.dayBody{padding:0 12px 12px}
-.dayChevron{font-size:12px;color:rgba(255,255,255,.60);font-weight:900}
-.slotDetails{margin-top:10px;background:rgba(0,0,0,.18)}
-.slotSummary{list-style:none;cursor:pointer;padding:12px 12px;display:flex;justify-content:space-between;align-items:center;gap:10px;font-weight:900}
-.slotSummary::-webkit-details-marker{display:none}
-.slotBody{padding:0 12px 12px}
-.badge{font-size:11px;font-weight:900;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.12)}
-.typeBlock{margin-top:10px}
-.typeHeader{font-weight:900;font-size:12px;color:rgba(255,255,255,.80);display:flex;align-items:center;justify-content:space-between;gap:10px}
-.typeHeaderLeft{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.noteEditor{margin-top:8px;width:100%;min-height:64px;padding:8px 10px;border-radius:12px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.05);color:#f3f4f6;resize:vertical}
-.chipWrap{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-.chipBtn{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.08);font-weight:900;font-size:12px;color:#f3f4f6;cursor:pointer}
-.chipType{width:22px;height:22px;border-radius:999px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.10);font-size:12px}
-.altHint{opacity:.72;font-size:11px;font-weight:800;margin-left:2px;white-space:nowrap}
-.lockMark{font-size:12px;opacity:.9}
-.waitlistItem{padding:10px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);margin-top:8px}
-.waitlistTitle{font-size:12px;font-weight:900;color:#f3f4f6}
-.waitlistReason{font-size:11px;color:rgba(255,255,255,.68);margin-top:4px}
-.waitlistActions{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px}
-.waitBtn{font-size:11px;padding:6px 8px;border-radius:10px}
-.waitBtn.warn{border-color:rgba(250,204,21,.45);background:rgba(250,204,21,.16)}
-.modal{position:fixed;inset:0;z-index:200;display:block}
-.backdrop{position:absolute;inset:0;background:rgba(0,0,0,.55)}
-.sheet{position:absolute;left:0;right:0;bottom:0;background:#111522;border-top-left-radius:18px;border-top-right-radius:18px;border:1px solid rgba(255,255,255,.10);padding:12px;max-height:78vh;overflow:auto}
-.sheetHeader{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px}
-.sheetTitle{font-weight:900;font-size:14px}
-.moveOptions{display:flex;flex-direction:column;gap:8px}
-.moveOption{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 10px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06)}
-.moveOption .left{display:flex;flex-direction:column;gap:4px}
-.moveOption .right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.sheetActions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
-.sheetActions button{flex:1;min-width:160px}
-.pill{font-size:11px;font-weight:900;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.12)}
-.pill.good{border-color:rgba(34,197,94,.45);background:rgba(34,197,94,.16)}
-.pill.warn{border-color:rgba(250,204,21,.45);background:rgba(250,204,21,.16)}
-.pill.bad{border-color:rgba(239,68,68,.45);background:rgba(239,68,68,.16)}
-.twoCol{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.summaryTableWrap{overflow-x:auto}
-.allStudentsTable table{width:100%;min-width:980px;border-collapse:collapse}
-.allStudentsTable th,.allStudentsTable td{border:1px solid rgba(255,255,255,.10);padding:8px 10px;text-align:left;vertical-align:top;font-size:12px}
-.allStudentsTable th{background:rgba(255,255,255,.06);color:#f3f4f6;font-weight:900}
-.allStudentsTable td{color:rgba(255,255,255,.78)}
-.allStudentsTable .nameCell{font-weight:900;color:#f3f4f6}
-.allStudentsTable .pkgCell{white-space:nowrap;font-weight:900}
-@media (max-width:720px){
-  .container{padding:12px 12px 90px}
-  .twoCol{grid-template-columns:1fr}
-  .weekGrid{min-width:760px}
-  .gridDays7{grid-template-columns:repeat(4,minmax(0,1fr))}
-  .daySlotBtn{min-height:44px;font-size:13px}
-  .sheetActions button{min-width:100%}
+<style>
+body{
+  font-family:Arial;
+  background:#111;
+  color:white;
+  padding:10px;
 }
 
+button{
+  margin:4px;
+  padding:8px 10px;
+  border-radius:6px;
+  border:none;
+  background:#333;
+  color:white;
+  cursor:pointer;
+}
+
+input{
+  padding:6px;
+  border-radius:6px;
+  border:none;
+}
+
+.slot{
+  border:1px solid #444;
+  padding:6px;
+  margin:6px 0;
+  border-radius:6px;
+}
+
+.student{
+  display:inline-block;
+  background:#333;
+  padding:4px 6px;
+  margin:2px;
+  border-radius:6px;
+}
+
+.hint{
+  font-size:10px;
+  opacity:0.6;
+  margin-left:4px;
+}
 </style>
 </head>
+
 <body>
-<header class="topbar">
-  <div class="brand">
-    <div class="logo">SE</div>
-    <div>
-      <div class="title">Sam’s Scheduler</div>
-      <div class="subtitle muted">Mobile entry • Move • Swap • Lock</div>
-    </div>
-  </div>
 
-  <nav class="tabs">
-    <button class="tab active" data-page="schedulePage">Schedule</button>
-    <button class="tab" data-page="studentsPage">Students</button>
-    <button class="tab" data-page="settingsPage">Settings</button>
-  </nav>
-</header>
+<h2>Lesson Scheduler</h2>
 
-<main class="container">
-  <section id="schedulePage" class="page show">
-    <div class="pageHeader">
-      <h2>Weekly Schedule</h2>
-      <div class="row">
-        <button id="todayBtn" class="ghost">Today</button>
-        <button id="generateBtn" class="primary">Auto-build</button>
-        <button id="reoptimizeBtn" class="ghost">Re-optimize</button>
-        <button id="clearScheduleBtn" class="ghost dangerText">Clear</button>
-      </div>
-    </div>
+<input id="nameInput" placeholder="Student name">
+<button onclick="addStudent()">Add Student</button>
+<button onclick="build()">Auto Build</button>
 
-    <div class="muted small">
-      Group + Advanced aim for 3–4, accept 2, and try to avoid 5–6. Private is 1.
-    </div>
+<h3>Students</h3>
+<div id="students"></div>
 
-    <div id="notice" class="notice hidden"></div>
+<h3>Schedule</h3>
+<div id="schedule"></div>
 
-    <div class="card" style="margin-top:12px;">
-      <h3 style="margin:0 0 8px;">Week Summary</h3>
-      <div id="scheduleSummary" class="summaryStats"></div>
-    </div>
+<h3>Waitlist</h3>
+<div id="waitlist"></div>
 
-    <div class="card" style="margin-top:12px;">
-      <h3 style="margin:0 0 8px;">Filters</h3>
-      <div class="filterRow">
-        <div class="filterBlock">
-          <div class="muted small" style="font-weight:900;">Show</div>
-          <div id="showFilterBtns" class="btnGroup"></div>
-        </div>
-        <div class="filterBlock">
-          <div class="muted small" style="font-weight:900;">Type</div>
-          <div id="typeFilterBtns" class="btnGroup"></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card" style="margin-top:12px;">
-      <h3 style="margin:0 0 8px;">Week at a glance</h3>
-      <div class="muted small" style="margin-bottom:10px;">Swipe ← → to see all days. Off days are highlighted. A dot means a session note exists.</div>
-      <div class="weekScroll">
-        <div id="weekGrid" class="weekGrid"></div>
-      </div>
-    </div>
-
-    <div id="scheduleGrid" class="scheduleGrid"></div>
-
-    <div class="card" style="margin-top:12px;">
-      <h3 style="margin:0 0 8px;">Waitlist</h3>
-      <div id="waitlistBox" class="muted small">None 🎉</div>
-    </div>
-
-    <div class="card" style="margin-top:12px;">
-      <h3 style="margin:0 0 8px;">Unscheduled</h3>
-      <div id="unscheduledList" class="muted small">None 🎉</div>
-    </div>
-
-    <div class="card" style="margin-top:12px;">
-      <h3 style="margin:0 0 10px;">Export Schedule</h3>
-
-      <label class="grow">
-        Week label
-        <input id="weekLabelInput" placeholder="Week 31 (Week of March 9, 2026)" />
-      </label>
-
-      <div class="row" style="margin-top:10px;">
-        <button id="buildFullExportBtn" class="ghost">Build Full</button>
-        <button id="buildCompactExportBtn" class="ghost">Build Compact</button>
-        <button id="copyExportBtn" class="primary">Copy Export</button>
-      </div>
-
-      <textarea id="exportScheduleBox" class="mono" placeholder="Your copyable weekly schedule will appear here..."></textarea>
-    </div>
-  </section>
-
-  <section id="studentsPage" class="page">
-    <div class="pageHeader">
-      <h2>Students</h2>
-      <div class="row">
-        <button id="exportBtn" class="ghost">Export Data</button>
-        <button id="importBtn" class="ghost">Import Data</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3 style="margin:0 0 10px;">Quick student pick</h3>
-
-      <div class="row">
-        <label class="grow">
-          Search students
-          <input id="studentSearch" placeholder="Type a name…" />
-        </label>
-      </div>
-
-      <div class="row" style="margin-top:10px;">
-        <label class="grow">
-          Add new student
-          <input id="studentName" placeholder="e.g., Yuki" />
-        </label>
-        <button id="addStudentBtn" class="primary">Add</button>
-      </div>
-
-      <div class="muted small" style="margin-top:10px;">Tap a student below to edit this week’s availability.</div>
-      <div id="studentQuickList" class="studentQuickList" style="margin-top:10px;"></div>
-
-      <div class="row" style="margin-top:10px;">
-        <label class="grow">
-          Select student
-          <select id="studentSelect"></select>
-        </label>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="entryHeader">
-        <div>
-          <h3 style="margin:0;">Weekly Availability Entry</h3>
-          <div id="editingStudentLabel" class="muted small" style="margin-top:6px;">Select a student.</div>
-        </div>
-      </div>
-
-      <details class="settingsDetails" style="margin-top:12px;">
-        <summary class="settingsSummary">Student settings</summary>
-
-        <div class="twoCol" style="margin-top:12px;">
-          <label>
-            Group
-            <select id="pkgGroup">
-              <option value="0">0</option>
-              <option value="1" selected>1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-            </select>
-          </label>
-
-          <label>
-            Advanced
-            <select id="pkgAdvanced">
-              <option value="0" selected>0</option>
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-            </select>
-          </label>
-
-          <label>
-            Private
-            <select id="pkgPrivate">
-              <option value="0" selected>0</option>
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-            </select>
-          </label>
-
-          <label>
-            Max sessions / day
-            <select id="maxPerDay">
-              <option value="1" selected>1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-            </select>
-          </label>
-        </div>
-
-        <div class="row" style="margin-top:10px;">
-          <button id="savePackagesBtn" class="primary">Save student settings</button>
-        </div>
-      </details>
-
-      <details id="groupDetails" class="typePanel typeGroup" open>
-        <summary class="typePanelSummary">
-          <div>
-            <div class="typePanelTitle">
-              Group
-              <button type="button" id="groupCountBtn" class="countBtn">(1)</button>
-            </div>
-            <div class="muted small">Usually evenings, but fully flexible.</div>
-          </div>
-        </summary>
-
-        <div class="typePanelBody">
-          <div class="quickActions">
-            <button class="ghost" data-bulk="group-weekday-evening">Weekday evenings</button>
-            <button class="ghost" data-bulk="group-all-evening">All evenings</button>
-            <button class="ghost" data-bulk="group-anytime-weekdays">Weekdays anytime</button>
-            <button class="ghost" data-bulk="group-clear">Clear Group</button>
-          </div>
-
-          <div class="availabilitySection">
-            <div class="availabilityRowHeader">Morning</div>
-            <div id="groupMorning" class="gridDays gridDays7"></div>
-          </div>
-
-          <div class="availabilitySection">
-            <div class="availabilityRowHeader">Afternoon</div>
-            <div id="groupAfternoon" class="gridDays gridDays7"></div>
-          </div>
-
-          <div class="availabilitySection">
-            <div class="availabilityRowHeader">Evening</div>
-            <div id="groupEvening" class="gridDays gridDays7"></div>
-          </div>
-        </div>
-      </details>
-
-      <details id="advancedDetails" class="typePanel typeAdvanced">
-        <summary class="typePanelSummary">
-          <div>
-            <div class="typePanelTitle">
-              Advanced
-              <button type="button" id="advancedCountBtn" class="countBtn">(0)</button>
-            </div>
-            <div class="muted small">Usually afternoons, but fully flexible.</div>
-          </div>
-        </summary>
-
-        <div class="typePanelBody">
-          <div class="quickActions">
-            <button class="ghost" data-bulk="advanced-weekday-afternoon">Weekday afternoons</button>
-            <button class="ghost" data-bulk="advanced-all-afternoon">All afternoons</button>
-            <button class="ghost" data-bulk="advanced-anytime-weekdays">Weekdays anytime</button>
-            <button class="ghost" data-bulk="advanced-clear">Clear Advanced</button>
-          </div>
-
-          <div class="availabilitySection">
-            <div class="availabilityRowHeader">Morning</div>
-            <div id="advancedMorning" class="gridDays gridDays7"></div>
-          </div>
-
-          <div class="availabilitySection">
-            <div class="availabilityRowHeader">Afternoon</div>
-            <div id="advancedAfternoon" class="gridDays gridDays7"></div>
-          </div>
-
-          <div class="availabilitySection">
-            <div class="availabilityRowHeader">Evening</div>
-            <div id="advancedEvening" class="gridDays gridDays7"></div>
-          </div>
-        </div>
-      </details>
-
-      <details id="privateDetails" class="typePanel typePrivate">
-        <summary class="typePanelSummary">
-          <div>
-            <div class="typePanelTitle">
-              Private
-              <button type="button" id="privateCountBtn" class="countBtn">(0)</button>
-            </div>
-            <div class="muted small">Usually mornings, but can be any time.</div>
-          </div>
-        </summary>
-
-        <div class="typePanelBody">
-          <div class="quickActions">
-            <button class="ghost" data-bulk="private-weekday-morning">Weekday mornings</button>
-            <button class="ghost" data-bulk="private-all-morning">All mornings</button>
-            <button class="ghost" data-bulk="private-anytime-weekdays">Weekdays anytime</button>
-            <button class="ghost" data-bulk="private-anytime-all">All days anytime</button>
-            <button class="ghost" data-bulk="private-clear">Clear Private</button>
-          </div>
-
-          <div class="availabilitySection">
-            <div class="availabilityRowHeader">Morning</div>
-            <div id="privateMorning" class="gridDays gridDays7"></div>
-          </div>
-
-          <div class="availabilitySection">
-            <div class="availabilityRowHeader">Afternoon</div>
-            <div id="privateAfternoon" class="gridDays gridDays7"></div>
-          </div>
-
-          <div class="availabilitySection">
-            <div class="availabilityRowHeader">Evening</div>
-            <div id="privateEvening" class="gridDays gridDays7"></div>
-          </div>
-        </div>
-      </details>
-
-      <div class="row" style="margin-top:14px;">
-        <button id="saveAllAvailabilityBtn" class="primary">Save all availability</button>
-        <button id="clearSelectedStudentAvailabilityBtn" class="ghost">Clear selected student availability</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3 style="margin:0 0 10px;">Selected Student Summary</h3>
-      <div id="summaryBox" class="muted small">Select a student.</div>
-    </div>
-
-    <div class="card">
-      <h3 style="margin:0 0 10px;">All Students Summary</h3>
-      <div class="row" style="margin-bottom:10px;">
-        <label style="min-width:180px;">
-          Sort by
-          <select id="studentSummarySort">
-            <option value="name">Name</option>
-            <option value="groupPkg">Group packages</option>
-            <option value="advancedPkg">Advanced packages</option>
-            <option value="privatePkg">Private packages</option>
-            <option value="maxDay">Max/day</option>
-          </select>
-        </label>
-
-        <label style="min-width:180px;">
-          Order
-          <select id="studentSummaryOrder">
-            <option value="asc">Ascending</option>
-            <option value="desc">Descending</option>
-          </select>
-        </label>
-      </div>
-
-      <div class="summaryTableWrap">
-        <div id="allStudentsSummary" class="allStudentsTable muted small">No students yet.</div>
-      </div>
-    </div>
-
-    <textarea id="jsonBox" class="mono" placeholder="Export/Import data here..."></textarea>
-  </section>
-
-  <section id="settingsPage" class="page">
-    <div class="pageHeader">
-      <h2>Settings</h2>
-      <div class="row">
-        <button id="startNewWeekBtn" class="ghost">Start New Week</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3 style="margin:0 0 10px;">Capacities</h3>
-      <div class="twoCol">
-        <label>
-          Group cap (2–6)
-          <input id="groupCap" type="number" min="2" max="6" step="1" />
-        </label>
-
-        <label>
-          Advanced cap (2–4)
-          <input id="advancedCap" type="number" min="2" max="4" step="1" />
-        </label>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3 style="margin:0 0 10px;">Preferred days</h3>
-      <label>
-        Preferred days (multi-select)
-        <select id="preferredDays" multiple size="7">
-          <option selected>Mon</option>
-          <option selected>Tue</option>
-          <option selected>Wed</option>
-          <option selected>Thu</option>
-          <option selected>Fri</option>
-          <option>Sat</option>
-          <option>Sun</option>
-        </select>
-      </label>
-    </div>
-  </section>
-
-  <div id="moveModal" class="modal hidden" aria-hidden="true">
-    <div id="moveBackdrop" class="backdrop"></div>
-    <div class="sheet">
-      <div class="sheetHeader">
-        <div>
-          <div id="moveTitle" class="sheetTitle">Move</div>
-          <div id="moveSubtitle" class="muted small">Choose a slot</div>
-        </div>
-        <button id="closeMove" class="ghost">Close</button>
-      </div>
-
-      <div id="moveOptions" class="moveOptions"></div>
-
-      <div class="sheetActions">
-        <button id="lockSessionBtn" class="ghost">Lock session</button>
-        <button id="cancelSessionBtn" class="ghost dangerText">Cancel this session</button>
-        <button id="cancelWeekBtn" class="ghost dangerText">Cancel student for week</button>
-      </div>
-
-      <div class="muted small" style="margin-top:10px;">
-        Locked sessions stay fixed during optimization, but you can still move them manually.
-      </div>
-    </div>
-  </div>
-
-  <div id="countModal" class="modal hidden" aria-hidden="true">
-    <div id="countBackdrop" class="backdrop"></div>
-    <div class="sheet">
-      <div class="sheetHeader">
-        <div>
-          <div id="countModalTitle" class="sheetTitle">Set placements</div>
-          <div class="muted small">Choose 0 to 3</div>
-        </div>
-        <button id="closeCountModal" class="ghost">Close</button>
-      </div>
-
-      <div id="countOptions" class="moveOptions"></div>
-    </div>
-  </div>
-</main>
 <script>
 
-const STORAGE_KEY = "sams_scheduler_single_file_v1";
-const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
-const WEEKDAYS = ["Mon","Tue","Wed","Thu","Fri"];
-const SLOTS = ["Morning","Afternoon","Evening"];
-const TYPES = ["Group","Advanced","Private"];
+let students = JSON.parse(localStorage.getItem("students")||"[]");
+let availability = JSON.parse(localStorage.getItem("availability")||"{}");
 
-function defaultState(){
-  return {
-    students: [],
-    schedule: [],
-    waitlist: [],
-    unscheduled: [],
-    sessionNotes: {},
-    weekLabel: "",
-    settings: { groupCap: 4, advancedCap: 4, preferredDays: ["Mon","Tue","Wed","Thu","Fri"] },
-    ui: { showFilter: "Filled", typeFilter: "All" }
-  };
-}
-function loadState(){
-  try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(!raw) return defaultState();
-    const parsed = JSON.parse(raw);
-    return {
-      ...defaultState(),
-      ...parsed,
-      settings: { ...defaultState().settings, ...(parsed.settings || {}) },
-      ui: { ...defaultState().ui, ...(parsed.ui || {}) },
-      sessionNotes: { ...(parsed.sessionNotes || {}) }
-    };
-  }catch{
-    return defaultState();
-  }
-}
-let state = loadState();
-function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+let schedule = {};
+let waitlist = [];
 
-const qs = s => document.querySelector(s);
-const qsa = s => [...document.querySelectorAll(s)];
-const showFilterBtns = qs('#showFilterBtns');
-const typeFilterBtns = qs('#typeFilterBtns');
-const weekGrid = qs('#weekGrid');
-const scheduleGrid = qs('#scheduleGrid');
-const waitlistBox = qs('#waitlistBox');
-const unscheduledList = qs('#unscheduledList');
-const scheduleSummary = qs('#scheduleSummary');
-const studentQuickList = qs('#studentQuickList');
-const studentSelect = qs('#studentSelect');
-const studentSearch = qs('#studentSearch');
-const editingStudentLabel = qs('#editingStudentLabel');
-const summaryBox = qs('#summaryBox');
-const allStudentsSummary = qs('#allStudentsSummary');
-const exportScheduleBox = qs('#exportScheduleBox');
-const weekLabelInput = qs('#weekLabelInput');
-const noticeEl = qs('#notice');
-const countModal = qs('#countModal');
-const moveModal = qs('#moveModal');
-let activeCountType = null;
-let editorState = emptyEditorState();
-let activeMoveId = null;
+let days = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+let slots = ["Morning","Afternoon","Evening"];
 
-function uid(){ return (crypto?.randomUUID?.() || Math.random().toString(36).slice(2,10)); }
-function todayLabel(){ return ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][new Date().getDay()]; }
-function esc(s){ return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
-function setNotice(msg){ noticeEl.textContent = msg || ""; noticeEl.classList.toggle('hidden', !msg); }
-function capFor(type){ return type === "Group" ? Number(state.settings.groupCap || 4) : type === "Advanced" ? Number(state.settings.advancedCap || 4) : 1; }
-function countAt(type, day, slot, arr = state.schedule){ return arr.filter(a => a.type===type && a.day===day && a.slot===slot).length; }
-function isDoubleBooked(studentId, day, slot, arr = state.schedule, excludeId = null){ return arr.some(a => a.id !== excludeId && a.studentId===studentId && a.day===day && a.slot===slot); }
-function sessionsOnDay(studentId, day, arr = state.schedule){ return arr.filter(a => a.studentId===studentId && a.day===day).length; }
-function isOffDay(day){ return !state.schedule.some(a => a.day === day); }
-function emptyEditorState(){ return { Group:{Morning:new Set(),Afternoon:new Set(),Evening:new Set()}, Advanced:{Morning:new Set(),Afternoon:new Set(),Evening:new Set()}, Private:{Morning:new Set(),Afternoon:new Set(),Evening:new Set()} }; }
-function noteKey(day, slot, type){ return `${day}|${slot}|${type}`; }
-function getNote(day, slot, type){ return state.sessionNotes[noteKey(day,slot,type)] || ""; }
-function setNote(day, slot, type, value){ const key = noteKey(day,slot,type); const trimmed = value.trim(); if(trimmed) state.sessionNotes[key] = trimmed; else delete state.sessionNotes[key]; save(); }
-function hasAnyNote(day, slot){ return TYPES.some(type => !!getNote(day, slot, type)); }
-function studentById(id){ return state.students.find(s => s.id === id); }
-function studentByName(name){ return state.students.find(s => s.name === name); }
-function ensureStudentDefaults(s){
-  s.packages = { Group: Number(s.packages?.Group ?? 1), Advanced: Number(s.packages?.Advanced ?? 0), Private: Number(s.packages?.Private ?? 0) };
-  s.maxPerDay = Number(s.maxPerDay ?? 1);
-  s.availability = Array.isArray(s.availability) ? s.availability : [];
+function save(){
+  localStorage.setItem("students", JSON.stringify(students));
+  localStorage.setItem("availability", JSON.stringify(availability));
 }
-state.students.forEach(ensureStudentDefaults);
 
-function getCurrentStudent(){ return studentById(studentSelect.value); }
-function updatePreferredDaysSelect(){
-  [...qs('#preferredDays').options].forEach(opt => opt.selected = (state.settings.preferredDays || []).includes(opt.value));
+function addStudent(){
+  let name = document.getElementById("nameInput").value;
+  if(!name) return;
+
+  students.push({name,group:1});
+  availability[name] = [];
+
+  save();
+  renderStudents();
 }
-function renderTabs(){
-  qsa('.tab').forEach(btn => {
-    btn.onclick = () => {
-      qsa('.tab').forEach(x => x.classList.remove('active'));
-      btn.classList.add('active');
-      qsa('.page').forEach(p => p.classList.remove('show'));
-      qs('#'+btn.dataset.page).classList.add('show');
-    };
+
+function build(){
+
+  schedule = {};
+  waitlist = [];
+
+  days.forEach(d=>{
+    schedule[d]={};
+    slots.forEach(s=>{
+      schedule[d][s]=[];
+    });
   });
-}
-function renderFilters(){
-  showFilterBtns.innerHTML = ["All","Filled"].map(v => `<button class="tapBtn ${state.ui.showFilter===v?'on':''}" data-v="${v}">${v}</button>`).join('');
-  typeFilterBtns.innerHTML = ["All","Group","Advanced","Private"].map(v => `<button class="tapBtn ${state.ui.typeFilter===v?'on':''}" data-v="${v}">${v}</button>`).join('');
-  qsa('#showFilterBtns button').forEach(b => b.onclick = ()=>{ state.ui.showFilter = b.dataset.v; save(); renderFilters(); renderSchedule(); });
-  qsa('#typeFilterBtns button').forEach(b => b.onclick = ()=>{ state.ui.typeFilter = b.dataset.v; save(); renderFilters(); renderSchedule(); });
-}
-function studentStatus(student){
-  const needed = TYPES.filter(t => Number(student.packages[t] || 0) > 0);
-  const entered = TYPES.filter(t => student.availability.some(a => a.type === t));
-  if(!needed.length || !entered.length) return {text:'—', cls:'statusEmpty'};
-  return needed.every(t => entered.includes(t)) ? {text:'✓', cls:'statusDone'} : {text:'•', cls:'statusPartial'};
-}
-function renderStudentSelect(){
-  const keep = studentSelect.value;
-  const ft = (studentSearch.value || '').trim().toLowerCase();
-  const list = !ft ? state.students : state.students.filter(s => s.name.toLowerCase().includes(ft));
-  studentSelect.innerHTML = '';
-  if(!list.length){
-    studentSelect.innerHTML = `<option value="">${ft ? 'No matches' : 'Add a student first'}</option>`;
-    return;
-  }
-  list.forEach(s => {
-    const opt = document.createElement('option');
-    opt.value = s.id; opt.textContent = s.name;
-    studentSelect.appendChild(opt);
-  });
-  if(keep && list.some(s => s.id===keep)) studentSelect.value = keep;
-}
-function renderStudentQuickList(){
-  const current = studentSelect.value;
-  const ft = (studentSearch.value || '').trim().toLowerCase();
-  const list = !ft ? state.students : state.students.filter(s => s.name.toLowerCase().includes(ft));
-  if(!list.length){ studentQuickList.innerHTML = `<div class="muted small">No students yet.</div>`; return; }
-  studentQuickList.innerHTML = list.map(s => {
-    const st = studentStatus(s);
-    return `<button class="studentChip ${s.id===current?'active':''}" data-id="${s.id}">
-      <span>${esc(s.name)}</span><span class="studentStatus ${st.cls}">${st.text}</span>
-    </button>`;
-  }).join('');
-  qsa('#studentQuickList .studentChip').forEach(btn => btn.onclick = ()=>{
-    studentSelect.value = btn.dataset.id;
-    loadEditorFromStudent();
-    renderStudentQuickList();
-  });
-}
-function loadEditorFromStudent(){
-  const s = getCurrentStudent();
-  editorState = emptyEditorState();
-  if(!s){ editingStudentLabel.textContent = 'Select a student.'; renderAvailabilityEditor(); renderSummary(); return; }
-  s.availability.forEach(a => { editorState[a.type][a.slot].add(a.day); });
-  editingStudentLabel.innerHTML = `Editing: <b>${esc(s.name)}</b> <span class="muted">• Packages G=${s.packages.Group}, A=${s.packages.Advanced}, P=${s.packages.Private}</span>`;
-  qs('#pkgGroup').value = s.packages.Group;
-  qs('#pkgAdvanced').value = s.packages.Advanced;
-  qs('#pkgPrivate').value = s.packages.Private;
-  qs('#maxPerDay').value = s.maxPerDay;
-  qs('#groupCountBtn').textContent = `(${s.packages.Group})`;
-  qs('#advancedCountBtn').textContent = `(${s.packages.Advanced})`;
-  qs('#privateCountBtn').textContent = `(${s.packages.Private})`;
-  qs('#groupDetails').open = s.packages.Group > 0;
-  qs('#advancedDetails').open = s.packages.Advanced > 0;
-  qs('#privateDetails').open = s.packages.Private > 0;
-  renderAvailabilityEditor();
-  renderSummary();
-}
-function renderDayButtons(targetEl, type, slot){
-  targetEl.innerHTML = DAYS.map(day => `<button class="daySlotBtn ${editorState[type][slot].has(day)?'on':''}" data-type="${type}" data-slot="${slot}" data-day="${day}">${day}</button>`).join('');
-}
-function renderAvailabilityEditor(){
-  renderDayButtons(qs('#groupMorning'),'Group','Morning');
-  renderDayButtons(qs('#groupAfternoon'),'Group','Afternoon');
-  renderDayButtons(qs('#groupEvening'),'Group','Evening');
-  renderDayButtons(qs('#advancedMorning'),'Advanced','Morning');
-  renderDayButtons(qs('#advancedAfternoon'),'Advanced','Afternoon');
-  renderDayButtons(qs('#advancedEvening'),'Advanced','Evening');
-  renderDayButtons(qs('#privateMorning'),'Private','Morning');
-  renderDayButtons(qs('#privateAfternoon'),'Private','Afternoon');
-  renderDayButtons(qs('#privateEvening'),'Private','Evening');
-  qsa('.daySlotBtn').forEach(btn => btn.onclick = ()=>{
-    const {type,slot,day} = btn.dataset;
-    if(editorState[type][slot].has(day)) editorState[type][slot].delete(day); else editorState[type][slot].add(day);
-    renderAvailabilityEditor();
-  });
-}
-function savePackages(){
-  const s = getCurrentStudent(); if(!s) return alert('Select a student first.');
-  s.packages.Group = Number(qs('#pkgGroup').value);
-  s.packages.Advanced = Number(qs('#pkgAdvanced').value);
-  s.packages.Private = Number(qs('#pkgPrivate').value);
-  s.maxPerDay = Number(qs('#maxPerDay').value);
-  if(!s.packages.Group) s.availability = s.availability.filter(a => a.type !== 'Group');
-  if(!s.packages.Advanced) s.availability = s.availability.filter(a => a.type !== 'Advanced');
-  if(!s.packages.Private) s.availability = s.availability.filter(a => a.type !== 'Private');
-  save(); loadEditorFromStudent(); renderStudentQuickList(); renderAllStudentsSummary(); alert('Student settings saved ✅');
-}
-function saveAllAvailability(){
-  const s = getCurrentStudent(); if(!s) return alert('Select a student first.');
-  s.availability = [];
-  TYPES.forEach(type => SLOTS.forEach(slot => editorState[type][slot].forEach(day => s.availability.push({type,slot,day}))));
-  save(); renderSummary(); renderAllStudentsSummary(); renderStudentQuickList(); alert('Availability saved ✅');
-}
-function clearSelectedStudentAvailability(){
-  const s = getCurrentStudent(); if(!s) return;
-  if(!confirm(`Clear all availability for ${s.name}?`)) return;
-  s.availability = []; editorState = emptyEditorState(); save(); loadEditorFromStudent(); renderStudentQuickList();
-}
-function applyBulkAction(action){
-  const fill = (type, slots, days) => days.forEach(d => slots.forEach(s => editorState[type][s].add(d)));
-  const clear = type => { editorState[type] = {Morning:new Set(),Afternoon:new Set(),Evening:new Set()}; };
-  if(action==='group-clear') clear('Group');
-  if(action==='advanced-clear') clear('Advanced');
-  if(action==='private-clear') clear('Private');
-  if(action==='group-weekday-evening') fill('Group',['Evening'],WEEKDAYS);
-  if(action==='group-all-evening') fill('Group',['Evening'],DAYS);
-  if(action==='group-anytime-weekdays') fill('Group',SLOTS,WEEKDAYS);
-  if(action==='advanced-weekday-afternoon') fill('Advanced',['Afternoon'],WEEKDAYS);
-  if(action==='advanced-all-afternoon') fill('Advanced',['Afternoon'],DAYS);
-  if(action==='advanced-anytime-weekdays') fill('Advanced',SLOTS,WEEKDAYS);
-  if(action==='private-weekday-morning') fill('Private',['Morning'],WEEKDAYS);
-  if(action==='private-all-morning') fill('Private',['Morning'],DAYS);
-  if(action==='private-anytime-weekdays') fill('Private',SLOTS,WEEKDAYS);
-  if(action==='private-anytime-all') fill('Private',SLOTS,DAYS);
-  renderAvailabilityEditor();
-}
-function renderSummary(){
-  const s = getCurrentStudent(); if(!s){ summaryBox.textContent = 'Select a student.'; return; }
-  const map = { Group:{Morning:new Set(),Afternoon:new Set(),Evening:new Set()}, Advanced:{Morning:new Set(),Afternoon:new Set(),Evening:new Set()}, Private:{Morning:new Set(),Afternoon:new Set(),Evening:new Set()} };
-  s.availability.forEach(a => map[a.type][a.slot].add(a.day));
-  const line = (type,slot) => `${type} • ${slot}: ${[...map[type][slot]].join(', ') || '(none)'}`;
-  summaryBox.innerHTML = `<div><b>${esc(s.name)}</b></div>
-  <div style="margin-top:8px" class="muted small">Packages/week: G=${s.packages.Group}, A=${s.packages.Advanced}, P=${s.packages.Private}<br>Max/day: ${s.maxPerDay}</div>
-  <div style="margin-top:10px">${TYPES.map(t=>`<div style="margin-top:10px"><div>${esc(line(t,'Morning'))}</div><div>${esc(line(t,'Afternoon'))}</div><div>${esc(line(t,'Evening'))}</div></div>`).join('')}</div>`;
-}
-function renderAllStudentsSummary(){
-  if(!state.students.length){ allStudentsSummary.innerHTML='No students yet.'; return; }
-  const sortBy = qs('#studentSummarySort').value;
-  const order = qs('#studentSummaryOrder').value;
-  const formatAvail = (student,type,slot) => student.availability.filter(a=>a.type===type&&a.slot===slot).map(a=>a.day).join(', ') || '—';
-  const sorted = [...state.students].sort((a,b)=>{
-    if(sortBy==='name'){ const r = a.name.toLowerCase().localeCompare(b.name.toLowerCase()); return order==='desc' ? -r : r; }
-    let av = sortBy==='groupPkg' ? a.packages.Group : sortBy==='advancedPkg' ? a.packages.Advanced : sortBy==='privatePkg' ? a.packages.Private : a.maxPerDay;
-    let bv = sortBy==='groupPkg' ? b.packages.Group : sortBy==='advancedPkg' ? b.packages.Advanced : sortBy==='privatePkg' ? b.packages.Private : b.maxPerDay;
-    return order==='desc' ? bv-av : av-bv;
-  });
-  allStudentsSummary.innerHTML = `<table><thead><tr><th>Student</th><th>Status</th><th>Packages</th><th>Max/day</th><th>Group</th><th>Advanced</th><th>Private</th></tr></thead>
-  <tbody>${sorted.map(student=>{ const st = studentStatus(student); return `<tr><td class="nameCell">${esc(student.name)}</td><td class="pkgCell">${st.text}</td><td class="pkgCell">G=${student.packages.Group} · A=${student.packages.Advanced} · P=${student.packages.Private}</td><td class="pkgCell">${student.maxPerDay}</td><td>${esc(`M: ${formatAvail(student,'Group','Morning')} | A: ${formatAvail(student,'Group','Afternoon')} | E: ${formatAvail(student,'Group','Evening')}`)}</td><td>${esc(`M: ${formatAvail(student,'Advanced','Morning')} | A: ${formatAvail(student,'Advanced','Afternoon')} | E: ${formatAvail(student,'Advanced','Evening')}`)}</td><td>${esc(`M: ${formatAvail(student,'Private','Morning')} | A: ${formatAvail(student,'Private','Afternoon')} | E: ${formatAvail(student,'Private','Evening')}`)}</td></tr>`; }).join('')}</tbody></table>`;
-}
-function totalTypeScore(type, arr){
-  const seen = new Set(); let total = 0;
-  arr.forEach(a => { if(a.type !== type) return; const k = `${a.day}|${a.slot}`; if(seen.has(k)) return; seen.add(k); total += cohortScore(type, countAt(type,a.day,a.slot,arr)); });
-  return total;
-}
-function moveWouldBeValid(a, newDay, newSlot, arr){
-  const st = studentById(a.studentId); if(!st) return false;
-  if(isDoubleBooked(a.studentId, newDay, newSlot, arr, a.id)) return false;
-  if(newDay !== a.day && sessionsOnDay(a.studentId, newDay, arr) >= st.maxPerDay) return false;
-  if(a.type === 'Private' && countAt('Private', newDay, newSlot, arr) >= 1) return false;
-  return true;
-}
-function splitOversizedGroups(type, arr){
-  let moved = 0, changed = true;
-  while(changed){
-    changed = false;
-    const sources = [];
-    DAYS.forEach(day => SLOTS.forEach(slot => { const size = countAt(type,day,slot,arr); if(size >= 5) sources.push({day,slot,size}); }));
-    sources.sort((a,b)=>b.size-a.size);
-    outer: for(const src of sources){
-      const members = arr.filter(a => a.type===type && a.day===src.day && a.slot===src.slot);
-      for(const donor of members){
-        if(donor.locked) continue;
-        const st = studentById(donor.studentId);
-        for(const v of st.availability.filter(v=>v.type===type)){
-          if(v.day===src.day && v.slot===src.slot) continue;
-          if(!moveWouldBeValid(donor, v.day, v.slot, arr)) continue;
-          const sourceBefore = countAt(type, src.day, src.slot, arr);
-          const targetBefore = countAt(type, v.day, v.slot, arr);
-          const sourceAfter = sourceBefore - 1;
-          const targetAfter = targetBefore + 1;
-          if(sourceAfter < 2 || targetAfter === 1 || targetAfter > capFor(type)) continue;
-          let gain = (cohortScore(type,sourceAfter)-cohortScore(type,sourceBefore)) + (cohortScore(type,targetAfter)-cohortScore(type,targetBefore));
-          if(sourceBefore >= 5) gain += 10;
-          if(targetBefore <= 1 && targetAfter >= 2) gain += 16;
-          if(gain > 0){
-            donor.day = v.day; donor.slot = v.slot;
-            moved++; changed = true; break outer;
-          }
+
+  students.forEach(st=>{
+    let placed=false;
+
+    for(let d of days){
+      for(let s of slots){
+        let group = schedule[d][s];
+
+        if(group.length<4){
+          group.push(st.name);
+          placed=true;
+          break;
         }
       }
+      if(placed) break;
     }
-  }
-  return moved;
-}
-function rescueSolos(type, arr){
-  let changed = false;
-  const seen = new Set();
-  for(const a of arr.filter(x=>x.type===type)){
-    const k = `${a.day}|${a.slot}`;
-    if(seen.has(k)) continue;
-    seen.add(k);
-    if(countAt(type, a.day, a.slot, arr) !== 1) continue;
-    const donors = arr.filter(x => x.type===type && !(x.day===a.day && x.slot===a.slot)).sort((x,y)=>countAt(type,y.day,y.slot,arr)-countAt(type,x.day,x.slot,arr));
-    for(const donor of donors){
-      if(donor.locked) continue;
-      const donorSize = countAt(type, donor.day, donor.slot, arr);
-      if(donorSize < 3) continue;
-      if(!isAvail(donor.studentId, type, a.day, a.slot)) continue;
-      if(!moveWouldBeValid(donor, a.day, a.slot, arr)) continue;
-      donor.day = a.day; donor.slot = a.slot; changed = true; break;
+
+    if(!placed){
+      waitlist.push(st.name);
     }
-  }
-  return changed;
+
+  });
+
+  render();
 }
-function waitlistRemainingSolos(type, arr){
-  const seen = new Set();
-  for(const a of [...arr].filter(x=>x.type===type)){
-    const k = `${a.day}|${a.slot}`;
-    if(seen.has(k)) continue;
-    seen.add(k);
-    if(countAt(type,a.day,a.slot,arr) !== 1) continue;
-    const idx = arr.findIndex(x => x.id === a.id);
-    if(idx !== -1){
-      const removed = arr.splice(idx,1)[0];
-      state.waitlist.push({...removed, reason:'Could not form 2+ cohort'});
-    }
-  }
-}
-function fixType(type, arr){
-  let moves = 0, passes = 0;
-  while(passes < 8){
-    let changed = false;
-    const split = splitOversizedGroups(type, arr); if(split){ moves += split; changed = true; }
-    if(rescueSolos(type, arr)){ moves += 1; changed = true; }
-    if(!changed) break;
-    passes++;
-  }
-  waitlistRemainingSolos(type, arr);
-  return moves;
-}
-function buildRequests(){
-  const reqs = [];
-  state.students.forEach(st => {
-    TYPES.forEach(type => {
-      const n = Number(st.packages[type] || 0);
-      for(let i=1;i<=n;i++) reqs.push({id:uid(), studentId:st.id, studentName:st.name, type, unitIndex:i});
+
+function render(){
+
+  let out="";
+
+  days.forEach(d=>{
+    out+=`<h3>${d}</h3>`;
+
+    slots.forEach(s=>{
+      let g = schedule[d][s];
+
+      if(g.length>0){
+        out+=`<div class="slot"><b>${s}</b><br>`;
+
+        g.forEach(n=>{
+          out+=`<span class="student">${n}</span>`;
+        });
+
+        out+=`</div>`;
+      }
     });
+
   });
-  reqs.sort((a,b)=> ({Private:3,Advanced:2,Group:1}[b.type] - {Private:3,Advanced:2,Group:1}[a.type]) || a.studentName.localeCompare(b.studentName));
-  return reqs;
+
+  document.getElementById("schedule").innerHTML = out;
+
+  renderWaitlist();
 }
-function autoBuild(){
-  state.unscheduled = [];
-  state.waitlist = [];
-  const arr = [];
-  buildRequests().forEach(r => {
-    const st = studentById(r.studentId);
-    const candidates = st.availability.filter(a => a.type === r.type);
-    if(!candidates.length){ state.unscheduled.push({name:r.studentName, type:r.type, reason:'No availability for this type'}); return; }
-    const viable = candidates.filter(c => {
-      if(r.type === 'Private' && countAt('Private', c.day, c.slot, arr) >= 1) return false;
-      if(r.type !== 'Private' && countAt(r.type, c.day, c.slot, arr) >= capFor(r.type)) return false;
-      if(isDoubleBooked(r.studentId, c.day, c.slot, arr)) return false;
-      if(sessionsOnDay(r.studentId, c.day, arr) >= st.maxPerDay) return false;
-      return true;
-    });
-    if(!viable.length){ state.unscheduled.push({name:r.studentName, type:r.type, reason:'No capacity, double-booking, or max/day reached'}); return; }
-    viable.sort((a,b)=>candidateScore(r.type,b.day,b.slot,arr)-candidateScore(r.type,a.day,a.slot,arr));
-    const best = viable[0];
-    arr.push({ id:r.id, studentId:r.studentId, studentName:r.studentName, type:r.type, unitIndex:r.unitIndex, day:best.day, slot:best.slot, locked:false });
-  });
-  const g = fixType('Group', arr);
-  const a = fixType('Advanced', arr);
-  state.schedule = arr;
-  save();
-  renderSchedule();
-  setNotice(`Auto-build complete. Group moves: ${g}. Advanced moves: ${a}.`);
-}
-function reoptimize(){
-  const arr = [...state.schedule];
-  state.waitlist = [];
-  const g = fixType('Group', arr);
-  const a = fixType('Advanced', arr);
-  state.schedule = arr;
-  save();
-  renderSchedule();
-  setNotice(`Re-optimized. Group moves: ${g}. Advanced moves: ${a}.`);
-}
-function previewText(arr){
-  if(!arr.length) return '—';
-  const names = arr.map(x => x.studentName + (x.locked ? '🔒' : ''));
-  const first = names.slice(0,2);
-  const rem = names.length - first.length;
-  return rem > 0 ? `${first.join(', ')} +${rem}` : first.join(', ');
-}
-function renderWeekGrid(){
-  const tf = state.ui.typeFilter;
-  let html = `<table class="weekTable"><thead><tr><th></th>${DAYS.map(d=>`<th>${d}</th>`).join('')}</tr></thead><tbody>`;
-  SLOTS.forEach(slot => {
-    html += `<tr><td>${slot}</td>`;
-    DAYS.forEach(day => {
-      const group = state.schedule.filter(a=>a.day===day&&a.slot===slot&&a.type==='Group');
-      const adv = state.schedule.filter(a=>a.day===day&&a.slot===slot&&a.type==='Advanced');
-      const priv = state.schedule.filter(a=>a.day===day&&a.slot===slot&&a.type==='Private');
-      const lines = [];
-      if(group.length && (tf==='All'||tf==='Group')) lines.push(`<div class="weekLine"><div class="weekLeft"><span class="weekTag">G</span><span class="weekText">${esc(previewText(group))}</span></div><span class="weekPill">${group.length}/${capFor('Group')}</span></div>`);
-      if(adv.length && (tf==='All'||tf==='Advanced')) lines.push(`<div class="weekLine" style="margin-top:${lines.length?6:0}px;"><div class="weekLeft"><span class="weekTag">A</span><span class="weekText">${esc(previewText(adv))}</span></div><span class="weekPill">${adv.length}/${capFor('Advanced')}</span></div>`);
-      if(priv.length && (tf==='All'||tf==='Private')) lines.push(`<div class="weekLine" style="margin-top:${lines.length?6:0}px;"><div class="weekLeft"><span class="weekTag">P</span><span class="weekText">${esc(previewText(priv))}</span></div><span class="weekPill">1/1</span></div>`);
-      const off = isOffDay(day);
-      html += `<td class="weekTD"><button class="weekCellBtn ${lines.length?'':'weekEmpty'} ${off?'offDay':''}" data-weektap="1" data-day="${day}" data-slot="${slot}">
-      ${lines.length ? lines.join('') : `<div class="weekEmptyText">—</div>`}
-      ${off ? `<div class="offDayLabel">OFF</div>` : ``}
-      ${hasAnyNote(day,slot) ? `<div class="noteDot">●</div>` : ``}
-      </button></td>`;
-    });
-    html += `</tr>`;
-  });
-  html += `</tbody></table>`;
-  weekGrid.innerHTML = html;
-  qsa('[data-weektap="1"]').forEach(btn => btn.onclick = ()=>{
-    qs('.tab[data-page="schedulePage"]').click();
-    const dayDetails = scheduleGrid.querySelector(`.dayDetails[data-day="${btn.dataset.day}"]`);
-    if(dayDetails){ dayDetails.open = true; const slotDetails = dayDetails.querySelector(`.slotDetails[data-slot="${btn.dataset.slot}"]`); if(slotDetails) slotDetails.open = true; dayDetails.scrollIntoView({behavior:'smooth', block:'start'}); }
-  });
-}
-function validWaitlistTargets(item){
-  const st = studentById(item.studentId); if(!st) return [];
-  const seen = new Set();
-  const out = [];
-  st.availability.filter(a=>a.type===item.type).forEach(a => {
-    const key = `${a.day}|${a.slot}`;
-    if(seen.has(key)) return;
-    seen.add(key);
-    if(isDoubleBooked(item.studentId, a.day, a.slot)) return;
-    if(sessionsOnDay(item.studentId, a.day) >= st.maxPerDay) return;
-    const current = countAt(item.type, a.day, a.slot);
-    if(item.type === 'Private' && current >= 1) return;
-    out.push({ day:a.day, slot:a.slot, overflow:item.type!=='Private' && current >= capFor(item.type) });
-  });
-  return out;
-}
-function placeFromWaitlist(id, day, slot, allowOverflow){
-  const idx = state.waitlist.findIndex(w => w.id === id); if(idx === -1) return;
-  const item = state.waitlist[idx];
-  const st = studentById(item.studentId);
-  if(isDoubleBooked(item.studentId, day, slot)) return alert('Student is already booked there.');
-  if(sessionsOnDay(item.studentId, day) >= st.maxPerDay) return alert('That would exceed max/day.');
-  const current = countAt(item.type, day, slot);
-  if(item.type === 'Private' && current >= 1) return alert('Private slot already taken.');
-  if(item.type !== 'Private' && current >= capFor(item.type) && !allowOverflow) return alert('Session already full.');
-  state.schedule.push({ id:item.id, studentId:item.studentId, studentName:item.studentName, type:item.type, unitIndex:item.unitIndex, day, slot, locked:item.locked || false });
-  state.waitlist.splice(idx,1);
-  save(); renderSchedule(); setNotice(`Placed ${item.studentName} into ${day} ${slot}.`);
-}
-function tagFor(type){ return type === 'Group' ? 'G' : type === 'Advanced' ? 'A' : 'P'; }
-function hintForAssignment(a){
-  const days = [...new Set(studentById(a.studentId).availability.filter(x=>x.type===a.type).map(x=>x.day))].filter(d=>d!==a.day);
-  if(!days.length) return '';
-  const shown = days.slice(0,2); const extra = days.length - shown.length;
-  return extra > 0 ? `${shown.join(', ')} +${extra}` : shown.join(', ');
-}
-function chipHtml(a){
-  const hint = hintForAssignment(a);
-  return `<button class="chipBtn" data-chip="${a.id}"><span class="chipType">${tagFor(a.type)}</span>${esc(a.studentName)}${hint?`<span class="altHint">· ${esc(hint)}</span>`:''}${a.locked?`<span class="lockMark">🔒</span>`:''}</button>`;
-}
-function renderScheduleSummary(){
-  const seen = new Set();
-  let g=0,a=0,p=0;
-  state.schedule.forEach(x => {
-    const k = `${x.day}|${x.slot}|${x.type}`;
-    if(seen.has(k)) return;
-    seen.add(k);
-    if(x.type==='Group') g++; else if(x.type==='Advanced') a++; else p++;
-  });
-  scheduleSummary.innerHTML = `<div class="summaryStat">Group: ${g}</div><div class="summaryStat">Advanced: ${a}</div><div class="summaryStat">Private: ${p}</div><div class="summaryStat">Total Sessions: ${g+a+p}</div>`;
-}
+
 function renderWaitlist(){
-  if(!state.waitlist.length){ waitlistBox.textContent = 'None 🎉'; return; }
-  waitlistBox.innerHTML = state.waitlist.map(item => {
-    const targets = validWaitlistTargets(item);
-    return `<div class="waitlistItem">
-      <div class="waitlistTitle">${esc(item.studentName)} — ${esc(item.type)}${item.locked?' 🔒':''}</div>
-      <div class="waitlistReason">${esc(item.reason || 'Waitlisted')}</div>
-      <div class="waitlistActions">
-        ${targets.length ? targets.map(t => `<button class="waitBtn ${t.overflow?'warn':''}" data-place="${item.id}" data-day="${t.day}" data-slot="${t.slot}" data-overflow="${t.overflow?'1':'0'}">${t.day} ${t.slot}${t.overflow?' (overflow)':''}</button>`).join('') : `<span class="muted small">No manual placement options right now.</span>`}
-      </div>
-    </div>`;
-  }).join('');
-  qsa('[data-place]').forEach(btn => btn.onclick = ()=>{
-    const overflow = btn.dataset.overflow === '1';
-    if(overflow && !confirm(`This will temporarily overflow ${btn.dataset.day} ${btn.dataset.slot}. Continue?`)) return;
-    placeFromWaitlist(btn.dataset.place, btn.dataset.day, btn.dataset.slot, overflow);
+  let out="";
+
+  waitlist.forEach(name=>{
+    out+=`<div>${name}</div>`;
   });
+
+  document.getElementById("waitlist").innerHTML = out || "None";
 }
-function renderUnscheduled(){
-  if(!state.unscheduled.length){ unscheduledList.textContent = 'None 🎉'; return; }
-  unscheduledList.innerHTML = `<ul class="muted small">${state.unscheduled.map(u => `<li><b>${esc(u.name)}</b> — ${esc(u.type)} • ${esc(u.reason)}</li>`).join('')}</ul>`;
-}
-function renderSchedule(){
-  const showFilled = state.ui.showFilter === 'Filled';
-  const tf = state.ui.typeFilter;
-  const days = showFilled ? DAYS.filter(d => state.schedule.some(a=>a.day===d) || isOffDay(d)) : DAYS;
-  scheduleGrid.innerHTML = days.map(day => {
-    const total = state.schedule.filter(a=>a.day===day).length;
-    const slotsHtml = SLOTS.map(slot => {
-      const grp = state.schedule.filter(a=>a.day===day&&a.slot===slot&&a.type==='Group');
-      const adv = state.schedule.filter(a=>a.day===day&&a.slot===slot&&a.type==='Advanced');
-      const prv = state.schedule.filter(a=>a.day===day&&a.slot===slot&&a.type==='Private');
-      const slotHas = grp.length + adv.length + prv.length;
-      if(showFilled && slotHas === 0 && !isOffDay(day)) return '';
-      const blocks = [];
-      if(grp.length && (tf==='All'||tf==='Group')) blocks.push(`<div class="typeBlock"><div class="typeHeader"><div class="typeHeaderLeft"><span>Group</span><span class="muted small">(${grp.length}/${capFor('Group')})</span></div></div><div class="chipWrap">${grp.map(chipHtml).join('')}</div><textarea class="noteEditor" data-note-day="${day}" data-note-slot="${slot}" data-note-type="Group" placeholder="Session note...">${esc(getNote(day,slot,'Group'))}</textarea></div>`);
-      if(adv.length && (tf==='All'||tf==='Advanced')) blocks.push(`<div class="typeBlock"><div class="typeHeader"><div class="typeHeaderLeft"><span>Advanced</span><span class="muted small">(${adv.length}/${capFor('Advanced')})</span></div></div><div class="chipWrap">${adv.map(chipHtml).join('')}</div><textarea class="noteEditor" data-note-day="${day}" data-note-slot="${slot}" data-note-type="Advanced" placeholder="Session note...">${esc(getNote(day,slot,'Advanced'))}</textarea></div>`);
-      if(prv.length && (tf==='All'||tf==='Private')) blocks.push(`<div class="typeBlock"><div class="typeHeader"><div class="typeHeaderLeft"><span>Private</span></div></div><div class="chipWrap">${prv.map(chipHtml).join('')}</div><textarea class="noteEditor" data-note-day="${day}" data-note-slot="${slot}" data-note-type="Private" placeholder="Session note...">${esc(getNote(day,slot,'Private'))}</textarea></div>`);
-      return `<details class="slotDetails" data-slot="${slot}" ${slotHas?'open':''}><summary class="slotSummary"><span>${slot}</span><span class="badge">${slotHas?'OK':isOffDay(day)?'OFF':'Empty'}</span></summary><div class="slotBody">${blocks.length?blocks.join(''):`<div class="muted small" style="margin-top:10px;">${isOffDay(day)?'Off day.':'(Hidden by filter or empty)'}</div>`}</div></details>`;
-    }).join('');
-    return `<details class="dayDetails ${isOffDay(day)?'offDayDetails':''}" data-day="${day}" ${total?'open':''}><summary class="daySummary"><span>${day}${day===todayLabel()?' • Today':''}${isOffDay(day)?' • OFF':''}</span><span class="dayChevron">${total?`${total} • tap to collapse`:`${isOffDay(day)?'0 • off day':'0 • empty'}`}</span></summary><div class="dayBody">${slotsHtml}</div></details>`;
-  }).join('');
-  qsa('[data-note-day]').forEach(el => el.onchange = ()=>{ setNote(el.dataset.noteDay, el.dataset.noteSlot, el.dataset.noteType, el.value); renderWeekGrid(); });
-  qsa('[data-chip]').forEach(btn => btn.onclick = ()=> openMoveModal(btn.dataset.chip));
-  renderWeekGrid(); renderWaitlist(); renderUnscheduled(); renderScheduleSummary();
-}
-function activeAssignment(){ return state.schedule.find(x => x.id === activeMoveId); }
-function openMoveModal(id){
-  activeMoveId = id;
-  const a = activeAssignment(); if(!a) return;
-  const st = studentById(a.studentId);
-  qs('#moveTitle').textContent = `Move ${tagFor(a.type)} ${a.studentName}${a.locked?' 🔒':''}`;
-  qs('#moveSubtitle').textContent = `Currently: ${a.day} ${a.slot}`;
-  const unique = [];
-  const seen = new Set();
-  st.availability.filter(v => v.type===a.type).forEach(v => { const k = `${v.day}|${v.slot}`; if(!seen.has(k)){ seen.add(k); unique.push(v); } });
-  qs('#moveOptions').innerHTML = unique.map(v => {
-    const same = v.day===a.day && v.slot===a.slot;
-    const current = countAt(a.type, v.day, v.slot);
-    const targetCount = current + (same ? 0 : 1);
-    const overflow = a.type !== 'Private' && targetCount > capFor(a.type);
-    const blocked = isDoubleBooked(a.studentId, v.day, v.slot, state.schedule, a.id) || (v.day!==a.day && sessionsOnDay(a.studentId, v.day) >= st.maxPerDay) || (a.type==='Private' && current >= 1 && !same);
-    return `<div class="moveOption"><div class="left"><div style="font-weight:900;">${v.day} ${v.slot}${same?' (current)':''}</div><div class="muted small">${a.type} count after move: ${targetCount}/${capFor(a.type)}</div></div><div class="right"><span class="pill ${blocked?'bad':overflow?'warn':'good'}">${blocked?'Blocked':overflow?'Overflow':'OK'}</span><button class="${blocked?'ghost':'primary'}" data-move-to-day="${v.day}" data-move-to-slot="${v.slot}" ${blocked?'disabled':''}>${same?'OK':'Move'}</button></div></div>`;
-  }).join('');
-  qsa('[data-move-to-day]').forEach(btn => btn.onclick = ()=> moveAssignment(a.id, btn.dataset.moveToDay, btn.dataset.moveToSlot));
-  qs('#lockSessionBtn').textContent = a.locked ? 'Unlock session' : 'Lock session';
-  moveModal.classList.remove('hidden');
-}
-function closeMoveModal(){ moveModal.classList.add('hidden'); activeMoveId = null; }
-function moveAssignment(id, day, slot){
-  const a = state.schedule.find(x => x.id===id); if(!a) return;
-  const st = studentById(a.studentId);
-  if(a.day===day && a.slot===slot){ closeMoveModal(); return; }
-  if(isDoubleBooked(a.studentId, day, slot, state.schedule, a.id)) return alert('That student is already booked in that slot.');
-  if(day!==a.day && sessionsOnDay(a.studentId, day) >= st.maxPerDay) return alert('That would exceed max/day.');
-  const current = countAt(a.type, day, slot);
-  if(a.type==='Private' && current >= 1) return alert('That private slot is already taken.');
-  if(a.type!=='Private' && current >= capFor(a.type) && !confirm(`This will temporarily overflow ${day} ${slot}. Continue?`)) return;
-  a.day = day; a.slot = slot;
-  save(); renderSchedule(); closeMoveModal(); setNotice(`Moved ${a.studentName} to ${day} ${slot}.`);
-}
-function exportData(){ qs('#jsonBox').value = JSON.stringify(state, null, 2); }
-function importData(){
-  try{
-    const parsed = JSON.parse(qs('#jsonBox').value);
-    parsed.students.forEach(ensureStudentDefaults);
-    state = {...defaultState(), ...parsed, settings:{...defaultState().settings, ...(parsed.settings||{})}, ui:{...defaultState().ui, ...(parsed.ui||{})}, sessionNotes:{...(parsed.sessionNotes||{})}};
-    save(); init(); alert('Imported ✅');
-  }catch(e){ alert('Import failed: '+e.message); }
-}
-function buildFullExportText(){
-  const header = (state.weekLabel || '').trim() || 'Weekly Schedule';
-  const parts = [header, ''];
-  DAYS.forEach(day => {
-    parts.push(day.toUpperCase());
-    const items = state.schedule.filter(a=>a.day===day).sort((a,b)=>SLOTS.indexOf(a.slot)-SLOTS.indexOf(b.slot) || a.type.localeCompare(b.type) || a.studentName.localeCompare(b.studentName));
-    if(!items.length){ parts.push('OFF',''); return; }
-    const groups = {};
-    items.forEach(a => { const k = `${a.slot}|${a.type}`; (groups[k] ||= []).push(a); });
-    Object.entries(groups).forEach(([k,arr]) => {
-      const [slot,type] = k.split('|');
-      parts.push(`${slot} – ${type}`);
-      const note = getNote(day,slot,type); if(note) parts.push(`Note: ${note}`);
-      arr.forEach(a => parts.push(a.studentName));
-      parts.push('');
-    });
+
+function renderStudents(){
+  let out="";
+  students.forEach(s=>{
+    out+=`<div>${s.name}</div>`;
   });
-  return parts.join('\n').trim();
+  document.getElementById("students").innerHTML=out;
 }
-function buildCompactExportText(){
-  const header = (state.weekLabel || '').trim() || 'Weekly Schedule';
-  const parts = [header, ''];
-  DAYS.forEach(day => {
-    const items = state.schedule.filter(a=>a.day===day);
-    if(!items.length){ parts.push(`${day}: OFF`); return; }
-    const groups = {};
-    items.forEach(a => { const k = `${a.slot}|${a.type}`; (groups[k] ||= []).push(a.studentName); });
-    parts.push(day);
-    Object.entries(groups).forEach(([k,names]) => {
-      const [slot,type] = k.split('|');
-      parts.push(`${slot} – ${type}: ${names.sort().join(', ')}`);
-      const note = getNote(day,slot,type); if(note) parts.push(`Note: ${note}`);
-    });
-    parts.push('');
-  });
-  return parts.join('\n').trim();
-}
-function init(){
-  state.students.forEach(ensureStudentDefaults);
-  qs('#groupCap').value = state.settings.groupCap;
-  qs('#advancedCap').value = state.settings.advancedCap;
-  updatePreferredDaysSelect();
-  weekLabelInput.value = state.weekLabel || '';
-  renderTabs();
-  renderFilters();
-  renderStudentSelect();
-  renderStudentQuickList();
-  renderAvailabilityEditor();
-  renderAllStudentsSummary();
-  renderSchedule();
-  if(studentSelect.value) loadEditorFromStudent();
-  else editingStudentLabel.textContent = 'Select a student.';
-  studentSearch.oninput = ()=>{ renderStudentSelect(); renderStudentQuickList(); if(studentSelect.value) loadEditorFromStudent(); };
-  studentSelect.onchange = ()=>{ loadEditorFromStudent(); renderStudentQuickList(); };
-  qs('#savePackagesBtn').onclick = savePackages;
-  qs('#saveAllAvailabilityBtn').onclick = saveAllAvailability;
-  qs('#clearSelectedStudentAvailabilityBtn').onclick = clearSelectedStudentAvailability;
-  document.querySelectorAll('[data-bulk]').forEach(btn => btn.onclick = ()=> applyBulkAction(btn.dataset.bulk));
-  qs('#addStudentBtn').onclick = ()=>{
-    const name = qs('#studentName').value.trim();
-    if(!name) return alert('Enter a student name.');
-    if(state.students.some(s => s.name.toLowerCase() === name.toLowerCase())) return alert('That student already exists.');
-    state.students.push({ id: uid(), name, availability: [], packages: {Group:1,Advanced:0,Private:0}, maxPerDay: 1 });
-    save();
-    qs('#studentName').value = '';
-    renderStudentSelect(); renderStudentQuickList(); studentSelect.value = state.students[state.students.length-1].id; loadEditorFromStudent(); renderAllStudentsSummary();
-  };
-  qs('#generateBtn').onclick = autoBuild;
-  qs('#reoptimizeBtn').onclick = reoptimize;
-  qs('#clearScheduleBtn').onclick = ()=>{ if(!confirm('Clear schedule?')) return; state.schedule=[]; state.waitlist=[]; state.unscheduled=[]; state.sessionNotes={}; save(); renderSchedule(); };
-  qs('#startNewWeekBtn').onclick = ()=>{ if(!confirm('Start a new week?\n\nThis keeps student names, packages, and settings, but clears availability, schedule, waitlist, notes, and week label.')) return; state.students.forEach(s => s.availability=[]); state.schedule=[]; state.waitlist=[]; state.unscheduled=[]; state.sessionNotes={}; state.weekLabel=''; save(); init(); setNotice('Started a new week. Students and settings kept.'); };
-  qs('#exportBtn').onclick = exportData;
-  qs('#importBtn').onclick = importData;
-  qs('#buildFullExportBtn').onclick = ()=> exportScheduleBox.value = buildFullExportText();
-  qs('#buildCompactExportBtn').onclick = ()=> exportScheduleBox.value = buildCompactExportText();
-  qs('#copyExportBtn').onclick = async ()=>{ const text = exportScheduleBox.value.trim(); if(!text) return alert('Build an export first.'); try{ await navigator.clipboard.writeText(text); setNotice('Copied schedule export.'); }catch{ exportScheduleBox.select(); document.execCommand('copy'); setNotice('Copied schedule export.'); } };
-  weekLabelInput.oninput = ()=>{ state.weekLabel = weekLabelInput.value; save(); };
-  qs('#groupCap').onchange = ()=>{ state.settings.groupCap = Number(qs('#groupCap').value || 4); save(); renderSchedule(); };
-  qs('#advancedCap').onchange = ()=>{ state.settings.advancedCap = Number(qs('#advancedCap').value || 4); save(); renderSchedule(); };
-  qs('#preferredDays').onchange = ()=>{ state.settings.preferredDays = [...qs('#preferredDays').options].filter(o=>o.selected).map(o=>o.value); save(); };
-  qs('#studentSummarySort').onchange = renderAllStudentsSummary;
-  qs('#studentSummaryOrder').onchange = renderAllStudentsSummary;
-  qs('#closeMove').onclick = closeMoveModal;
-  qs('#moveBackdrop').onclick = closeMoveModal;
-  qs('#lockSessionBtn').onclick = ()=>{ const a = activeMoveId && state.schedule.find(x=>x.id===activeMoveId); if(!a) return; a.locked = !a.locked; save(); renderSchedule(); openMoveModal(a.id); };
-  qs('#cancelSessionBtn').onclick = ()=>{ const a = activeMoveId && state.schedule.find(x=>x.id===activeMoveId); if(!a) return; if(!confirm(`Cancel ${a.studentName}'s ${a.type} session?`)) return; state.schedule = state.schedule.filter(x=>x.id!==a.id); save(); renderSchedule(); closeMoveModal(); };
-  qs('#cancelWeekBtn').onclick = ()=>{ const a = activeMoveId && state.schedule.find(x=>x.id===activeMoveId); if(!a) return; if(!confirm(`Cancel all of ${a.studentName}'s sessions for this week?`)) return; state.schedule = state.schedule.filter(x=>x.studentId!==a.studentId); state.waitlist = state.waitlist.filter(x=>x.studentId!==a.studentId); save(); renderSchedule(); closeMoveModal(); };
-}
-init();
+
+renderStudents();
+build();
 
 </script>
+
 </body>
 </html>
