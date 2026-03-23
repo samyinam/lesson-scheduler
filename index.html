@@ -625,7 +625,7 @@ const WEEKDAYS = ["Mon","Tue","Wed","Thu","Fri"];
 const SLOTS = ["Morning","Afternoon","Evening","Late Night"];
 const TYPES = ["Group","Advanced","Private","Online"];
 const TYPE_PRIORITY = { Private: 4, Online: 3, Advanced: 2, Group: 1 };
-const STORAGE_KEY = "sams_scheduler_full_current_v2";
+const STORAGE_KEY = "sams_scheduler_full_current_v3";
 
 function defaultState(){
   return {
@@ -891,34 +891,89 @@ function splitOversizedGroups(type, arr){
   return moved;
 }
 
+/* PATCHED VERSION */
 function rescueSolosByBorrowing(type, arr){
   let changed = false;
   const seen = new Set();
 
-  for(const a of arr.filter(x => x.type===type)){
+  const soloSlots = [];
+  for (const a of arr.filter(x => x.type === type)) {
     const key = `${a.day}|${a.slot}`;
-    if(seen.has(key)) continue;
+    if (seen.has(key)) continue;
     seen.add(key);
 
-    const size = countAt(type,a.day,a.slot,arr);
-    if(size !== 1) continue;
-
-    const donors = arr.filter(x => x.type===type && !(x.day===a.day && x.slot===a.slot))
-      .sort((x,y)=>countAt(type,y.day,y.slot,arr)-countAt(type,x.day,x.slot,arr));
-
-    for(const donor of donors){
-      if(donor.locked) continue;
-      const donorSize = countAt(type,donor.day,donor.slot,arr);
-      if(donorSize < 3) continue;
-      if(!isAvail(donor.studentId,type,a.day,a.slot)) continue;
-      if(!moveWouldBeValid(donor,a.day,a.slot,arr)) continue;
-
-      donor.day = a.day;
-      donor.slot = a.slot;
-      changed = true;
-      break;
+    const size = countAt(type, a.day, a.slot, arr);
+    if (size === 1) {
+      soloSlots.push({ day: a.day, slot: a.slot });
     }
   }
+
+  for (const solo of soloSlots) {
+    const soloMembers = arr.filter(
+      x => x.type === type && x.day === solo.day && x.slot === solo.slot
+    );
+    if (soloMembers.length !== 1) continue;
+
+    const donorGroups = [];
+    const donorSeen = new Set();
+
+    for (const a of arr.filter(x => x.type === type)) {
+      const donorKey = `${a.day}|${a.slot}`;
+      if (donorSeen.has(donorKey)) continue;
+      donorSeen.add(donorKey);
+
+      if (a.day === solo.day && a.slot === solo.slot) continue;
+
+      const donorSize = countAt(type, a.day, a.slot, arr);
+      if (donorSize >= 3) {
+        donorGroups.push({
+          day: a.day,
+          slot: a.slot,
+          size: donorSize
+        });
+      }
+    }
+
+    donorGroups.sort((a, b) => b.size - a.size);
+
+    let rescued = false;
+
+    for (const donorGroup of donorGroups) {
+      const donors = arr.filter(
+        x => x.type === type &&
+             x.day === donorGroup.day &&
+             x.slot === donorGroup.slot
+      );
+
+      for (const donor of donors) {
+        if (donor.locked) continue;
+        if (!isAvail(donor.studentId, type, solo.day, solo.slot)) continue;
+        if (isDoubleBooked(donor.studentId, solo.day, solo.slot, arr, donor.id)) continue;
+
+        const donorSizeBefore = countAt(type, donor.day, donor.slot, arr);
+        if (donorSizeBefore - 1 < 2) continue;
+
+        const donorStudent = studentById(donor.studentId);
+        if (!donorStudent) continue;
+
+        if (
+          donor.day !== solo.day &&
+          sessionsScheduledForStudentOnDay(donor.studentId, solo.day, arr) >= donorStudent.maxPerDay
+        ) {
+          continue;
+        }
+
+        donor.day = solo.day;
+        donor.slot = solo.slot;
+        changed = true;
+        rescued = true;
+        break;
+      }
+
+      if (rescued) break;
+    }
+  }
+
   return changed;
 }
 
@@ -1076,7 +1131,6 @@ function typeLabel(type){
   if(type === "Online") return "Online lesson";
   return `${type} lesson`;
 }
-
 function slotLabel(slot){ return slot.toLowerCase(); }
 
 function studentScheduledSessions(studentId){
