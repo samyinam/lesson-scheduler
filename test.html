@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sam’s Scheduler</title>
+
+<style>
+
+* { box-sizing: border-box; }
+
+body {
+  margin:0;
+  font-family:-apple-system;
+  background:#0f1115;
+  color:white;
+}
+
+.topbar {
+  position:sticky;
+  top:0;
+  padding:10px;
+  background:#111;
+  border-bottom:1px solid rgba(255,255,255,.1);
+}
+
+.tabs {
+  display:flex;
+  gap:8px;
+  margin-top:8px;
+}
+
+.tab {
+  flex:1;
+  padding:10px;
+  border-radius:10px;
+  background:#222;
+  border:1px solid rgba(255,255,255,.1);
+  text-align:center;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.tab.active {
+  background:#6366f1;
+}
+
+.container {
+  padding:12px;
+}
+
+.card {
+  background:#1a1d26;
+  padding:12px;
+  border-radius:12px;
+  margin-top:12px;
+}
+
+button {
+  padding:10px;
+  border-radius:10px;
+  border:none;
+  background:#6366f1;
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.btnGhost {
+  background:#222;
+}
+
+.grid {
+  display:grid;
+  gap:8px;
+}
+
+.weekGrid {
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:6px;
+}
+
+.cell {
+  background:#1a1d26;
+  padding:8px;
+  border-radius:10px;
+  font-size:12px;
+}
+
+.wait {
+  background:#3a1d1d;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="topbar">
+  <div>Sam’s Scheduler</div>
+  <div class="tabs">
+    <div class="tab active">Schedule</div>
+    <div class="tab">Students</div>
+    <div class="tab">Settings</div>
+  </div>
+</div>
+
+<div class="container">
+
+<h2>Schedule</h2>
+
+<button onclick="autoBuild()">Auto Build</button>
+
+<div id="weekGrid" class="weekGrid"></div>
+
+<div id="schedule"></div>
+
+<h3>Waitlist</h3>
+<div id="waitlist"></div>
+
+</div>
+
+<script>
+
+const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+const SLOTS=["Morning","Afternoon","Evening","Late Night"];
+
+let state={
+  students:[],
+  schedule:[],
+  waitlist:[]
+};
+
+function renderWeek(){
+
+  const grid=document.getElementById("weekGrid");
+  grid.innerHTML="";
+
+  DAYS.forEach(day=>{
+    const div=document.createElement("div");
+    div.className="cell";
+    div.innerHTML=day;
+    grid.appendChild(div);
+  });
+}
+
+renderWeek();
