@@ -118,7 +118,99 @@ button {
 
 <h3>Waitlist</h3>
 <div id="waitlist"></div>
+/* =========================
+   STUDENT SYSTEM
+========================= */
 
+function addStudent(name){
+  const student={
+    id:Math.random().toString(36).slice(2),
+    name:name,
+    availability:[],
+    packages:{
+      Group:1,
+      Advanced:0,
+      Private:0,
+      Online:0
+    },
+    maxPerDay:1
+  };
+
+  state.students.push(student);
+  save();
+  renderStudents();
+}
+
+function renderStudents(){
+
+  const container=document.getElementById("schedule");
+
+  let html=`<div class="card">
+  <h3>Add Student</h3>
+  <input id="studentNameInput" placeholder="Name" style="width:100%;padding:8px;margin-top:8px;border-radius:8px">
+  <button onclick="handleAddStudent()" style="margin-top:8px">Add</button>
+  </div>`;
+
+  html+=`<div class="card"><h3>Students</h3>`;
+
+  state.students.forEach(s=>{
+    html+=`
+    <div style="margin-top:6px">
+      ${s.name}
+      <button onclick="addAvailability('${s.id}')" style="margin-left:10px">+ Availability</button>
+    </div>`;
+  });
+
+  html+=`</div>`;
+
+  container.innerHTML=html;
+}
+
+function handleAddStudent(){
+  const input=document.getElementById("studentNameInput");
+  if(!input.value.trim()) return;
+  addStudent(input.value.trim());
+  input.value="";
+}
+
+function addAvailability(studentId){
+
+  const day=prompt("Day (Mon/Tue/etc)");
+  const slot=prompt("Slot (Morning/Afternoon/Evening)");
+
+  const student=state.students.find(s=>s.id===studentId);
+
+  if(!student) return;
+
+  student.availability.push({
+    type:"Group",
+    day:day,
+    slot:slot
+  });
+
+  save();
+  renderStudents();
+}
+
+/* =========================
+   SAVE / LOAD
+========================= */
+
+function save(){
+  localStorage.setItem("scheduler",JSON.stringify(state));
+}
+
+function load(){
+
+  const data=localStorage.getItem("scheduler");
+
+  if(data){
+    state=JSON.parse(data);
+  }
+}
+
+load();
+renderStudents();
 </div>
 
 <script>
