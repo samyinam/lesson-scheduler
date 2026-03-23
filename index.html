@@ -90,7 +90,7 @@ textarea{width:100%;min-height:90px;margin-top:8px;padding:10px;border-radius:12
 }
 .tapBtn.on{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.20)}
 .weekScroll{overflow-x:auto;padding-bottom:6px}
-.weekGrid{min-width:920px}
+.weekGrid{min-width:980px}
 .weekTable{width:100%;border-collapse:separate;border-spacing:8px}
 .weekTable th,.weekTable td{vertical-align:top}
 .weekTable thead th{
@@ -100,7 +100,7 @@ textarea{width:100%;min-height:90px;margin-top:8px;padding:10px;border-radius:12
   padding-top:10px;font-size:12px;font-weight:900;color:rgba(255,255,255,.75)
 }
 .weekCellBtn{
-  width:100%;min-width:160px;text-align:left;padding:10px;border-radius:14px;
+  width:100%;min-width:170px;text-align:left;padding:10px;border-radius:14px;
   background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);
   color:#f3f4f6;position:relative;cursor:pointer
 }
@@ -117,7 +117,7 @@ textarea{width:100%;min-height:90px;margin-top:8px;padding:10px;border-radius:12
   border:1px solid rgba(255,255,255,.12)
 }
 .weekText{
-  font-size:12px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:170px
+  font-size:12px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px
 }
 .weekPill{
   padding:4px 8px;border-radius:999px;font-size:11px;font-weight:900;
@@ -150,6 +150,7 @@ textarea{width:100%;min-height:90px;margin-top:8px;padding:10px;border-radius:12
 .typeHeader{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:12px;font-weight:900;color:rgba(255,255,255,.8)}
 .typeHeaderLeft{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .chipWrap{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.chipGroup{display:inline-flex;align-items:center;gap:6px}
 .chipBtn{
   display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border-radius:999px;
   border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.08);
@@ -204,7 +205,7 @@ textarea{width:100%;min-height:90px;margin-top:8px;padding:10px;border-radius:12
 .daySlotBtn.on{background:rgba(99,102,241,.28);border-color:rgba(99,102,241,.45)}
 .twoCol{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .summaryTableWrap{overflow-x:auto}
-.allStudentsTable table{width:100%;min-width:1020px;border-collapse:collapse}
+.allStudentsTable table{width:100%;min-width:1120px;border-collapse:collapse}
 .allStudentsTable th,.allStudentsTable td{
   border:1px solid rgba(255,255,255,.10);padding:8px 10px;text-align:left;vertical-align:top;font-size:12px
 }
@@ -246,10 +247,11 @@ textarea{width:100%;min-height:90px;margin-top:8px;padding:10px;border-radius:12
 .pill.good{border-color:rgba(34,197,94,.45);background:rgba(34,197,94,.16)}
 .pill.warn{border-color:rgba(250,204,21,.45);background:rgba(250,204,21,.16)}
 .pill.bad{border-color:rgba(239,68,68,.45);background:rgba(239,68,68,.16)}
+.sessionTimeInput{margin-top:6px}
 @media (max-width:720px){
   .container{padding:12px 12px 90px}
   .twoCol{grid-template-columns:1fr}
-  .weekGrid{min-width:820px}
+  .weekGrid{min-width:860px}
   .gridDays7{grid-template-columns:repeat(4,minmax(0,1fr))}
   .daySlotBtn{min-height:44px;font-size:13px}
   .sheetActions button{min-width:100%}
@@ -264,7 +266,7 @@ textarea{width:100%;min-height:90px;margin-top:8px;padding:10px;border-radius:12
     <div class="logo">SE</div>
     <div>
       <div class="title">Sam’s Scheduler</div>
-      <div class="subtitle">Mobile entry • Auto-build • Move • Export</div>
+      <div class="subtitle">Mobile entry • Auto-build • Move • Message</div>
     </div>
   </div>
 
@@ -435,6 +437,9 @@ textarea{width:100%;min-height:90px;margin-top:8px;padding:10px;border-radius:12
         <div class="quickActions">
           <button class="btnGhost" data-bulk="group-weekday-evening">Weekday evenings</button>
           <button class="btnGhost" data-bulk="group-all-evening">All evenings</button>
+          <button class="btnGhost" data-copyavail="1" data-from="Group" data-to="Advanced">Copy Group → Advanced</button>
+          <button class="btnGhost" data-copyavail="1" data-from="Group" data-to="Private">Copy Group → Private</button>
+          <button class="btnGhost" data-copyavail="1" data-from="Group" data-to="Online">Copy Group → Online</button>
           <button class="btnGhost" data-bulk="group-clear">Clear Group</button>
         </div>
         <div class="availabilitySection"><div class="availabilityRowHeader">Morning</div><div id="groupMorning" class="gridDays gridDays7"></div></div>
@@ -452,6 +457,7 @@ textarea{width:100%;min-height:90px;margin-top:8px;padding:10px;border-radius:12
         </summary>
         <div class="quickActions">
           <button class="btnGhost" data-bulk="advanced-weekday-afternoon">Weekday afternoons</button>
+          <button class="btnGhost" data-copyavail="1" data-from="Group" data-to="Advanced">Replace with Group</button>
           <button class="btnGhost" data-bulk="advanced-clear">Clear Advanced</button>
         </div>
         <div class="availabilitySection"><div class="availabilityRowHeader">Morning</div><div id="advancedMorning" class="gridDays gridDays7"></div></div>
@@ -469,6 +475,7 @@ textarea{width:100%;min-height:90px;margin-top:8px;padding:10px;border-radius:12
         </summary>
         <div class="quickActions">
           <button class="btnGhost" data-bulk="private-weekday-morning">Weekday mornings</button>
+          <button class="btnGhost" data-copyavail="1" data-from="Group" data-to="Private">Replace with Group</button>
           <button class="btnGhost" data-bulk="private-clear">Clear Private</button>
         </div>
         <div class="availabilitySection"><div class="availabilityRowHeader">Morning</div><div id="privateMorning" class="gridDays gridDays7"></div></div>
@@ -486,6 +493,7 @@ textarea{width:100%;min-height:90px;margin-top:8px;padding:10px;border-radius:12
         </summary>
         <div class="quickActions">
           <button class="btnGhost" data-bulk="online-late-night">Late nights</button>
+          <button class="btnGhost" data-copyavail="1" data-from="Group" data-to="Online">Replace with Group</button>
           <button class="btnGhost" data-bulk="online-clear">Clear Online</button>
         </div>
         <div class="availabilitySection"><div class="availabilityRowHeader">Morning</div><div id="onlineMorning" class="gridDays gridDays7"></div></div>
@@ -557,6 +565,24 @@ textarea{width:100%;min-height:90px;margin-top:8px;padding:10px;border-radius:12
     </div>
 
     <div class="card">
+      <h3>Default Lesson Times</h3>
+      <div class="twoCol">
+        <label>Morning
+          <input id="defaultMorningTime" type="text" placeholder="10:00 AM" />
+        </label>
+        <label>Afternoon
+          <input id="defaultAfternoonTime" type="text" placeholder="2:00 PM" />
+        </label>
+        <label>Evening
+          <input id="defaultEveningTime" type="text" placeholder="6:30 PM" />
+        </label>
+        <label>Late Night
+          <input id="defaultLateNightTime" type="text" placeholder="9:30 PM" />
+        </label>
+      </div>
+    </div>
+
+    <div class="card">
       <h3>Preferred days</h3>
       <label>
         Preferred days (multi-select)
@@ -598,9 +624,8 @@ const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 const WEEKDAYS = ["Mon","Tue","Wed","Thu","Fri"];
 const SLOTS = ["Morning","Afternoon","Evening","Late Night"];
 const TYPES = ["Group","Advanced","Private","Online"];
-const COHORT_TYPES = ["Group","Advanced","Online"];
 const TYPE_PRIORITY = { Private: 4, Online: 3, Advanced: 2, Group: 1 };
-const STORAGE_KEY = "sams_scheduler_completed_v1";
+const STORAGE_KEY = "sams_scheduler_full_current_v2";
 
 function defaultState(){
   return {
@@ -610,7 +635,13 @@ function defaultState(){
       groupCap: 4,
       advancedCap: 4,
       onlineCap: 4,
-      preferredDays: ["Mon","Tue","Wed","Thu","Fri"]
+      preferredDays: ["Mon","Tue","Wed","Thu","Fri"],
+      defaultTimes: {
+        "Morning": "10:00 AM",
+        "Afternoon": "2:00 PM",
+        "Evening": "6:30 PM",
+        "Late Night": "9:30 PM"
+      }
     },
     ui: {
       showFilter: "Filled",
@@ -619,7 +650,8 @@ function defaultState(){
     waitlist: [],
     _lastUnscheduled: [],
     weekLabel: "",
-    sessionNotes: {}
+    sessionNotes: {},
+    sessionTimeOverrides: {}
   };
 }
 
@@ -629,12 +661,21 @@ function load(){
     if(!raw) return defaultState();
     const parsed = JSON.parse(raw);
     if(!parsed || !Array.isArray(parsed.students)) return defaultState();
+
     return {
       ...defaultState(),
       ...parsed,
-      settings: { ...defaultState().settings, ...(parsed.settings || {}) },
+      settings: {
+        ...defaultState().settings,
+        ...(parsed.settings || {}),
+        defaultTimes: {
+          ...defaultState().settings.defaultTimes,
+          ...((parsed.settings && parsed.settings.defaultTimes) || {})
+        }
+      },
       ui: { ...defaultState().ui, ...(parsed.ui || {}) },
       sessionNotes: { ...(parsed.sessionNotes || {}) },
+      sessionTimeOverrides: { ...(parsed.sessionTimeOverrides || {}) },
       weekLabel: parsed.weekLabel || ""
     };
   }catch{
@@ -676,17 +717,11 @@ function ensureStudentDefaults(student){
   student.maxPerDay = Number(student.maxPerDay ?? 1);
   student.availability = Array.isArray(student.availability) ? student.availability : [];
 }
-
 state.students.forEach(ensureStudentDefaults);
 
-function studentById(id){ return state.students.find(s => s.id === id) || null; }
-
+function studentById(id){ return state.students.find(s => s.id===id) || null; }
 function preferredDaysSet(){ return new Set(state.settings.preferredDays || []); }
-
-function getTodayLabel(){
-  const map = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-  return map[new Date().getDay()];
-}
+function getTodayLabel(){ return ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][new Date().getDay()]; }
 const TODAY = getTodayLabel();
 
 function capFor(type){
@@ -722,10 +757,7 @@ function isAvail(studentId, type, day, slot){
 function typesPresent(day, slot, arr){
   return [...new Set(arr.filter(a => a.day===day && a.slot===slot).map(a => a.type))];
 }
-
-function isConflict(day, slot, arr){
-  return typesPresent(day, slot, arr).length >= 2;
-}
+function isConflict(day, slot, arr){ return typesPresent(day, slot, arr).length >= 2; }
 
 function cohortScore(type,size){
   if(size <= 0) return 0;
@@ -747,7 +779,7 @@ function candidateScore(type, day, slot, arr){
   if(type === "Online") s += 8;
   if(type === "Group") s += 6;
 
-  const current = countAt(type,day,slot,arr);
+  const current = countAt(type, day, slot, arr);
 
   if(type === "Private"){
     if(current === 0) s += 3;
@@ -760,7 +792,7 @@ function candidateScore(type, day, slot, arr){
     if(current >= 4) s -= 12;
   }
 
-  if(isConflict(day,slot,arr)) s -= 2;
+  if(isConflict(day, slot, arr)) s -= 2;
   return s;
 }
 
@@ -804,7 +836,6 @@ function splitOversizedGroups(type, arr){
 
   while(changed){
     changed = false;
-
     const sources = [];
     DAYS.forEach(day=>{
       SLOTS.forEach(slot=>{
@@ -812,7 +843,6 @@ function splitOversizedGroups(type, arr){
         if(size >= 5) sources.push({day,slot,size});
       });
     });
-
     sources.sort((a,b)=>b.size-a.size);
 
     outer:
@@ -858,7 +888,6 @@ function splitOversizedGroups(type, arr){
       }
     }
   }
-
   return moved;
 }
 
@@ -890,7 +919,6 @@ function rescueSolosByBorrowing(type, arr){
       break;
     }
   }
-
   return changed;
 }
 
@@ -925,18 +953,9 @@ function fixTypeCohorts(type, arr){
 
   while(passes < 8){
     let changed = false;
-
     const splitMoves = splitOversizedGroups(type,arr);
-    if(splitMoves){
-      totalMoves += splitMoves;
-      changed = true;
-    }
-
-    if(rescueSolosByBorrowing(type,arr)){
-      totalMoves += 1;
-      changed = true;
-    }
-
+    if(splitMoves){ totalMoves += splitMoves; changed = true; }
+    if(rescueSolosByBorrowing(type,arr)){ totalMoves += 1; changed = true; }
     if(!changed) break;
     passes++;
   }
@@ -997,7 +1016,7 @@ function autoBuild(){
   state.schedule = assignments;
   save();
   renderSchedule();
-  setNotice(`Auto-build complete. Group moves: ${groupMoves}. Advanced moves: ${advancedMoves}. Online moves: ${onlineMoves}.`);
+  setNotice(`Auto-build complete. Group: ${groupMoves}. Advanced: ${advancedMoves}. Online: ${onlineMoves}.`);
 }
 
 function reoptimizeSchedule(){
@@ -1032,6 +1051,89 @@ function hasAnyNoteInSlot(day,slot){
   return TYPES.some(type => !!getSessionNote(day,slot,type));
 }
 
+function timeKey(day,slot,type){ return `${day}|${slot}|${type}`; }
+function getDefaultTime(slot){
+  return (state.settings.defaultTimes && state.settings.defaultTimes[slot]) || "";
+}
+function getSessionTime(day,slot,type){
+  const override = state.sessionTimeOverrides[timeKey(day,slot,type)];
+  if(override && String(override).trim()) return String(override).trim();
+  return getDefaultTime(slot);
+}
+function setSessionTimeOverride(day,slot,type,value){
+  const key = timeKey(day,slot,type);
+  const trimmed = String(value || "").trim();
+  const defaultTime = getDefaultTime(slot);
+  if(!trimmed || trimmed === defaultTime) delete state.sessionTimeOverrides[key];
+  else state.sessionTimeOverrides[key] = trimmed;
+  save();
+}
+
+function typeLabel(type){
+  if(type === "Group") return "Group lesson";
+  if(type === "Advanced") return "Advanced lesson";
+  if(type === "Private") return "Private lesson";
+  if(type === "Online") return "Online lesson";
+  return `${type} lesson`;
+}
+
+function slotLabel(slot){ return slot.toLowerCase(); }
+
+function studentScheduledSessions(studentId){
+  return [...state.schedule]
+    .filter(a => a.studentId===studentId)
+    .sort((a,b)=>{
+      const dayOrder = DAYS.indexOf(a.day) - DAYS.indexOf(b.day);
+      if(dayOrder !== 0) return dayOrder;
+      return SLOTS.indexOf(a.slot) - SLOTS.indexOf(b.slot);
+    });
+}
+
+function buildStudentMessage(studentId){
+  const student = studentById(studentId);
+  if(!student) return "";
+
+  const sessions = studentScheduledSessions(studentId);
+  if(!sessions.length){
+    return `Hi ${student.name}! 😊\n\nYou don’t have any scheduled lessons this week.\n`;
+  }
+
+  if(sessions.length === 1){
+    const s = sessions[0];
+    const time = getSessionTime(s.day,s.slot,s.type);
+    return [
+      `Hi ${student.name}! 😊`,
+      ``,
+      `Just confirming your ${typeLabel(s.type).toLowerCase()}:`,
+      `${s.day} ${slotLabel(s.slot)}${time ? ` at ${time}` : ""}`,
+      ``,
+      `Please let me know if you can attend 👍`
+    ].join("\n");
+  }
+
+  return [
+    `Hi ${student.name}! 😊`,
+    ``,
+    `Just confirming your lessons this week:`,
+    ...sessions.map(s=>{
+      const time = getSessionTime(s.day,s.slot,s.type);
+      return `• ${typeLabel(s.type)} — ${s.day} ${slotLabel(s.slot)}${time ? ` at ${time}` : ""}`;
+    }),
+    ``,
+    `Please let me know if you can attend 👍`
+  ].join("\n");
+}
+
+async function copyStudentMessage(studentId){
+  const text = buildStudentMessage(studentId);
+  try{
+    await navigator.clipboard.writeText(text);
+    setNotice("Copied student confirmation message.");
+  }catch{
+    alert(text);
+  }
+}
+
 function getBucketCounts(day,slot){
   return {
     group: state.schedule.filter(a => a.day===day && a.slot===slot && a.type==="Group"),
@@ -1041,9 +1143,7 @@ function getBucketCounts(day,slot){
   };
 }
 
-function isOffDay(day){
-  return !state.schedule.some(a => a.day===day);
-}
+function isOffDay(day){ return !state.schedule.some(a => a.day===day); }
 
 function previewText(arr){
   if(!arr.length) return "—";
@@ -1126,12 +1226,12 @@ function setNotice(msg){
 }
 
 function emptyEditorState(){
-  const state = {};
+  const out = {};
   TYPES.forEach(type=>{
-    state[type] = {};
-    SLOTS.forEach(slot => state[type][slot] = new Set());
+    out[type] = {};
+    SLOTS.forEach(slot => out[type][slot] = new Set());
   });
-  return state;
+  return out;
 }
 let editorState = emptyEditorState();
 
@@ -1173,10 +1273,8 @@ function hasAvailabilityForType(student,type){
 function studentEntryStatus(student){
   const neededTypes = TYPES.filter(t => Number(student.packages[t]||0) > 0);
   const enteredTypes = TYPES.filter(t => hasAvailabilityForType(student,t));
-
   if(!neededTypes.length) return {text:"—",cls:"statusEmpty"};
   if(!enteredTypes.length) return {text:"—",cls:"statusEmpty"};
-
   const allDone = neededTypes.every(t => enteredTypes.includes(t));
   return allDone ? {text:"✓",cls:"statusDone"} : {text:"•",cls:"statusPartial"};
 }
@@ -1185,8 +1283,8 @@ function renderStudentQuickList(filterText=""){
   const current = document.getElementById("studentSelect").value || "";
   const ft = filterText.trim().toLowerCase();
   const list = !ft ? state.students : state.students.filter(s => s.name.toLowerCase().includes(ft));
-
   const wrap = document.getElementById("studentQuickList");
+
   if(!list.length){
     wrap.innerHTML = `<div class="small muted">No students yet.</div>`;
     return;
@@ -1298,7 +1396,6 @@ function savePackages(){
   TYPES.forEach(type=>{
     if(s.packages[type] === 0){
       s.availability = s.availability.filter(a => a.type !== type);
-      editorState[type] = {};
       SLOTS.forEach(slot => editorState[type][slot] = new Set());
     }
   });
@@ -1333,13 +1430,33 @@ function saveAllAvailability(){
 function clearSelectedStudentAvailability(){
   const s = getCurrentStudent();
   if(!s) return;
-  const ok = confirm(`Clear all availability for ${s.name}?`);
-  if(!ok) return;
+  if(!confirm(`Clear all availability for ${s.name}?`)) return;
   s.availability = [];
   editorState = emptyEditorState();
   save();
   loadEditorFromStudent();
   renderStudentQuickList(document.getElementById("studentSearch").value || "");
+}
+
+function copyAvailabilityFromTo(fromType,toType){
+  const s = getCurrentStudent();
+  if(!s) return alert("Select a student first.");
+  if(fromType === toType) return;
+
+  const hasSource = SLOTS.some(slot => editorState[fromType][slot].size > 0);
+  if(!hasSource){
+    alert(`No ${fromType} availability to copy.`);
+    return;
+  }
+
+  const ok = confirm(`Replace ${toType} availability with ${fromType} availability?`);
+  if(!ok) return;
+
+  SLOTS.forEach(slot=>{
+    editorState[toType][slot] = new Set([...editorState[fromType][slot]]);
+  });
+
+  renderAvailabilityEditor();
 }
 
 function applyBulkAction(action){
@@ -1517,20 +1634,20 @@ function altDayHintText(a){
 function chipBtnHTML(a){
   const hint = altDayHintText(a);
   return `
-    <button class="chipBtn" data-chip="1" data-id="${a.id}">
-      <span class="chipType">${tagFor(a.type)}</span>
-      ${escapeHtml(a.studentName)}
-      ${hint ? `<span class="altHint">· ${escapeHtml(hint)}</span>` : ""}
-      ${a.locked ? `<span class="lockMark">🔒</span>` : ""}
-    </button>
+    <span class="chipGroup">
+      <button class="chipBtn" data-chip="1" data-id="${a.id}">
+        <span class="chipType">${tagFor(a.type)}</span>
+        ${escapeHtml(a.studentName)}
+        ${hint ? `<span class="altHint">· ${escapeHtml(hint)}</span>` : ""}
+        ${a.locked ? `<span class="lockMark">🔒</span>` : ""}
+      </button>
+      <button class="btnTiny" data-copymsg="1" data-studentid="${a.studentId}" title="Copy confirmation message">📋</button>
+    </span>
   `;
 }
 
 let activeMoveAssignmentId = null;
-
-function activeAssignment(){
-  return state.schedule.find(x => x.id===activeMoveAssignmentId) || null;
-}
+function activeAssignment(){ return state.schedule.find(x => x.id===activeMoveAssignmentId) || null; }
 
 function updateLockButton(){
   const a = activeAssignment();
@@ -1643,7 +1760,6 @@ function attemptManualMove(assignmentId,newDay,newSlot){
     const cap = capFor(a.type);
     const targetAfter = countAt(a.type,newDay,newSlot,state.schedule) + 1;
     const originAfter = countAt(a.type,a.day,a.slot,state.schedule) - 1;
-
     const overflow = targetAfter > cap;
     const createsSolo = (originAfter > 0 && originAfter < 2) || (targetAfter > 0 && targetAfter < 2);
 
@@ -1839,6 +1955,7 @@ function renderSchedule(){
         blocks.push(`
           <div class="typeBlock">
             <div class="typeHeader"><div class="typeHeaderLeft"><span>Group</span><span class="small muted">(${grp.length}/${capFor("Group")})</span></div></div>
+            <div class="row" style="margin-top:8px"><label class="grow">Time<input class="sessionTimeInput" data-time-editor="1" data-day="${d}" data-slot="${slot}" data-type="Group" value="${escapeHtml(getSessionTime(d,slot,"Group"))}"></label></div>
             <div class="chipWrap">${grp.map(chipBtnHTML).join("")}</div>
             <textarea class="noteEditor" data-note-editor="1" data-day="${d}" data-slot="${slot}" data-type="Group" placeholder="Session note...">${escapeHtml(note)}</textarea>
           </div>
@@ -1850,6 +1967,7 @@ function renderSchedule(){
         blocks.push(`
           <div class="typeBlock">
             <div class="typeHeader"><div class="typeHeaderLeft"><span>Advanced</span><span class="small muted">(${adv.length}/${capFor("Advanced")})</span></div></div>
+            <div class="row" style="margin-top:8px"><label class="grow">Time<input class="sessionTimeInput" data-time-editor="1" data-day="${d}" data-slot="${slot}" data-type="Advanced" value="${escapeHtml(getSessionTime(d,slot,"Advanced"))}"></label></div>
             <div class="chipWrap">${adv.map(chipBtnHTML).join("")}</div>
             <textarea class="noteEditor" data-note-editor="1" data-day="${d}" data-slot="${slot}" data-type="Advanced" placeholder="Session note...">${escapeHtml(note)}</textarea>
           </div>
@@ -1861,6 +1979,7 @@ function renderSchedule(){
         blocks.push(`
           <div class="typeBlock">
             <div class="typeHeader"><div class="typeHeaderLeft"><span>Private</span></div></div>
+            <div class="row" style="margin-top:8px"><label class="grow">Time<input class="sessionTimeInput" data-time-editor="1" data-day="${d}" data-slot="${slot}" data-type="Private" value="${escapeHtml(getSessionTime(d,slot,"Private"))}"></label></div>
             <div class="chipWrap">${prv.map(chipBtnHTML).join("")}</div>
             <textarea class="noteEditor" data-note-editor="1" data-day="${d}" data-slot="${slot}" data-type="Private" placeholder="Session note...">${escapeHtml(note)}</textarea>
           </div>
@@ -1872,6 +1991,7 @@ function renderSchedule(){
         blocks.push(`
           <div class="typeBlock">
             <div class="typeHeader"><div class="typeHeaderLeft"><span>Online</span><span class="small muted">(${online.length}/${capFor("Online")})</span></div></div>
+            <div class="row" style="margin-top:8px"><label class="grow">Time<input class="sessionTimeInput" data-time-editor="1" data-day="${d}" data-slot="${slot}" data-type="Online" value="${escapeHtml(getSessionTime(d,slot,"Online"))}"></label></div>
             <div class="chipWrap">${online.map(chipBtnHTML).join("")}</div>
             <textarea class="noteEditor" data-note-editor="1" data-day="${d}" data-slot="${slot}" data-type="Online" placeholder="Session note...">${escapeHtml(note)}</textarea>
           </div>
@@ -1911,10 +2031,24 @@ function renderSchedule(){
     btn.onclick = () => openMoveModal(btn.dataset.id);
   });
 
+  document.querySelectorAll("[data-copymsg='1']").forEach(btn=>{
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      copyStudentMessage(btn.dataset.studentid);
+    };
+  });
+
   document.querySelectorAll("[data-note-editor='1']").forEach(el=>{
     el.addEventListener("change", ()=>{
       setSessionNote(el.dataset.day,el.dataset.slot,el.dataset.type,el.value);
       renderWeekGrid();
+    });
+  });
+
+  document.querySelectorAll("[data-time-editor='1']").forEach(el=>{
+    el.addEventListener("change", ()=>{
+      setSessionTimeOverride(el.dataset.day, el.dataset.slot, el.dataset.type, el.value);
+      renderSchedule();
     });
   });
 
@@ -1991,9 +2125,8 @@ function buildFullExportText(){
     const items = state.schedule
       .filter(a => a.day===day)
       .sort((a,b)=>{
-        const order = SLOTS;
-        const sa = order.indexOf(a.slot);
-        const sb = order.indexOf(b.slot);
+        const sa = SLOTS.indexOf(a.slot);
+        const sb = SLOTS.indexOf(b.slot);
         if(sa !== sb) return sa - sb;
         return a.type.localeCompare(b.type);
       });
@@ -2013,6 +2146,8 @@ function buildFullExportText(){
     Object.entries(groups).forEach(([k,arr])=>{
       const [slot,type] = k.split("|");
       parts.push(`${slot} – ${type}`);
+      const time = getSessionTime(day,slot,type);
+      if(time) parts.push(`Time: ${time}`);
       const note = getSessionNote(day,slot,type);
       if(note) parts.push(`Note: ${note}`);
       arr.sort((a,b)=>a.studentName.localeCompare(b.studentName)).forEach(a=>parts.push(a.studentName));
@@ -2043,7 +2178,8 @@ function buildCompactExportText(){
     parts.push(day);
     Object.entries(groups).forEach(([k,names])=>{
       const [slot,type] = k.split("|");
-      parts.push(`${slot} – ${type}: ${names.sort().join(", ")}`);
+      const time = getSessionTime(day,slot,type);
+      parts.push(`${slot} – ${type}${time ? ` (${time})` : ""}: ${names.sort().join(", ")}`);
       const note = getSessionNote(day,slot,type);
       if(note) parts.push(`Note: ${note}`);
     });
@@ -2066,9 +2202,17 @@ function importData(){
     state = {
       ...defaultState(),
       ...parsed,
-      settings: { ...defaultState().settings, ...(parsed.settings || {}) },
+      settings: {
+        ...defaultState().settings,
+        ...(parsed.settings || {}),
+        defaultTimes: {
+          ...defaultState().settings.defaultTimes,
+          ...((parsed.settings && parsed.settings.defaultTimes) || {})
+        }
+      },
       ui: { ...defaultState().ui, ...(parsed.ui || {}) },
       sessionNotes: { ...(parsed.sessionNotes || {}) },
+      sessionTimeOverrides: { ...(parsed.sessionTimeOverrides || {}) },
       weekLabel: parsed.weekLabel || ""
     };
 
@@ -2089,6 +2233,7 @@ document.getElementById("clearScheduleBtn").onclick = () => {
   state.waitlist = [];
   state._lastUnscheduled = [];
   state.sessionNotes = {};
+  state.sessionTimeOverrides = {};
   save();
   setNotice("");
   renderSchedule();
@@ -2143,6 +2288,10 @@ document.querySelectorAll("[data-bulk]").forEach(btn=>{
   btn.onclick = () => applyBulkAction(btn.dataset.bulk);
 });
 
+document.querySelectorAll("[data-copyavail='1']").forEach(btn=>{
+  btn.onclick = () => copyAvailabilityFromTo(btn.dataset.from, btn.dataset.to);
+});
+
 document.getElementById("groupCap").addEventListener("change", ()=>{
   state.settings.groupCap = clampInt(document.getElementById("groupCap").value,2,6);
   save(); renderSchedule();
@@ -2160,6 +2309,23 @@ document.getElementById("preferredDays").addEventListener("change", ()=>{
   save(); renderSchedule();
 });
 
+document.getElementById("defaultMorningTime").addEventListener("change", ()=>{
+  state.settings.defaultTimes["Morning"] = document.getElementById("defaultMorningTime").value.trim() || "10:00 AM";
+  save(); renderSchedule();
+});
+document.getElementById("defaultAfternoonTime").addEventListener("change", ()=>{
+  state.settings.defaultTimes["Afternoon"] = document.getElementById("defaultAfternoonTime").value.trim() || "2:00 PM";
+  save(); renderSchedule();
+});
+document.getElementById("defaultEveningTime").addEventListener("change", ()=>{
+  state.settings.defaultTimes["Evening"] = document.getElementById("defaultEveningTime").value.trim() || "6:30 PM";
+  save(); renderSchedule();
+});
+document.getElementById("defaultLateNightTime").addEventListener("change", ()=>{
+  state.settings.defaultTimes["Late Night"] = document.getElementById("defaultLateNightTime").value.trim() || "9:30 PM";
+  save(); renderSchedule();
+});
+
 document.getElementById("studentSummarySort").addEventListener("change", renderAllStudentsSummary);
 document.getElementById("studentSummaryOrder").addEventListener("change", renderAllStudentsSummary);
 
@@ -2172,6 +2338,7 @@ document.getElementById("startNewWeekBtn").onclick = () => {
     "• waitlist\n" +
     "• unscheduled items\n" +
     "• session notes\n" +
+    "• session time overrides\n" +
     "• week label\n\n" +
     "It will keep:\n" +
     "• student names\n" +
@@ -2186,6 +2353,7 @@ document.getElementById("startNewWeekBtn").onclick = () => {
   state.waitlist = [];
   state._lastUnscheduled = [];
   state.sessionNotes = {};
+  state.sessionTimeOverrides = {};
   state.weekLabel = "";
   save();
   setNotice("Started a new week. Students and settings kept.");
@@ -2271,6 +2439,12 @@ function init(){
   document.getElementById("groupCap").value = clampInt(state.settings.groupCap,2,6);
   document.getElementById("advancedCap").value = clampInt(state.settings.advancedCap,2,4);
   document.getElementById("onlineCap").value = clampInt(state.settings.onlineCap,2,4);
+
+  document.getElementById("defaultMorningTime").value = getDefaultTime("Morning");
+  document.getElementById("defaultAfternoonTime").value = getDefaultTime("Afternoon");
+  document.getElementById("defaultEveningTime").value = getDefaultTime("Evening");
+  document.getElementById("defaultLateNightTime").value = getDefaultTime("Late Night");
+
   [...document.getElementById("preferredDays").options].forEach(opt=>{
     opt.selected = (state.settings.preferredDays || []).includes(opt.value);
   });
