@@ -183,3 +183,293 @@ function renderSchedule(){
 
 renderWeek();
 renderSchedule();
+
+  /* =========================
+   STUDENT SYSTEM
+========================= */
+
+function addStudent(name){
+  const student = {
+    id: Math.random().toString(36).slice(2),
+    name: name,
+    availability: [],
+    packages: {
+      Group: 1,
+      Advanced: 0,
+      Private: 0,
+      Online: 0
+    },
+    maxPerDay: 1
+  };
+
+  state.students.push(student);
+  saveState();
+  renderStudents();
+}
+
+function handleAddStudent(){
+  const input = document.getElementById("studentNameInput");
+  if(!input) return;
+  const name = input.value.trim();
+  if(!name) return;
+
+  addStudent(name);
+  input.value = "";
+}
+
+function addAvailability(studentId){
+  const student = state.students.find(s => s.id === studentId);
+  if(!student) return;
+
+  const type = prompt("Type (Group / Advanced / Private / Online)", "Group");
+  if(!type) return;
+
+  const day = prompt("Day (Mon/Tue/Wed/Thu/Fri/Sat/Sun)", "Wed");
+  if(!day) return;
+
+  const slot = prompt("Slot (Morning/Afternoon/Evening/Late Night)", "Evening");
+  if(!slot) return;
+
+  student.availability.push({
+    type: type,
+    day: day,
+    slot: slot
+  });
+
+  saveState();
+  renderStudents();
+}
+
+function renderStudents(){
+  const waitlistBox = document.getElementById("waitlist");
+
+  let html = `
+    <div class="card">
+      <h3>Add Student</h3>
+      <input id="studentNameInput" placeholder="Student name" style="width:100%;padding:10px;border-radius:10px;border:none;margin-top:8px;">
+      <button onclick="handleAddStudent()" style="margin-top:8px;">Add Student</button>
+    </div>
+
+    <div class="card">
+      <h3>Students</h3>
+  `;
+
+  if(state.students.length === 0){
+    html += `<div>No students yet</div>`;
+  } else {
+    html += state.students.map(s => `
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.1);">
+        <div><strong>${s.name}</strong></div>
+        <div style="margin-top:6px;">
+          <button onclick="addAvailability('${s.id}')">+ Availability</button>
+        </div>
+        <div style="margin-top:6px;font-size:13px;opacity:.8;">
+          ${s.availability.length ? s.availability.map(a => `${a.type}: ${a.day} ${a.slot}`).join("<br>") : "No availability yet"}
+        </div>
+      </div>
+    `).join("");
+  }
+
+  html += `</div>`;
+
+  document.getElementById("schedule").innerHTML = html;
+
+  if(state.waitlist.length === 0){
+    waitlistBox.innerHTML = `<div class="card">No waitlist</div>`;
+  } else {
+    waitlistBox.innerHTML = state.waitlist.map(w => `
+      <div class="card">
+        ${w.studentName} — ${w.type}
+      </div>
+    `).join("");
+  }
+}
+
+/* =========================
+   SAVE / LOAD
+========================= */
+
+function saveState(){
+  localStorage.setItem("sam_scheduler_test", JSON.stringify(state));
+}
+
+function loadState(){
+  const raw = localStorage.getItem("sam_scheduler_test");
+  if(!raw) return;
+
+  try{
+    state = JSON.parse(raw);
+  }catch(e){
+    console.log("Could not load saved state");
+  }
+}
+
+loadState();
+renderStudents();
+renderSchedule();
+
+  /* =========================
+   SCHEDULING LOGIC
+========================= */
+
+function countAt(type, day, slot, arr){
+  return arr.filter(a => a.type === type && a.day === day && a.slot === slot).length;
+}
+
+function candidateScore(type, day, slot, arr){
+  let score = 0;
+
+  // Preference: Group + Advanced prefer afternoon/evening equally
+  if(type === "Group" || type === "Advanced"){
+    if(slot === "Afternoon" || slot === "Evening") score += 20;
+    else if(slot === "Morning") score += 8;
+    else if(slot === "Late Night") score -= 5;
+  }
+
+  // Light preference for building on an existing same-type slot
+  const currentCount = countAt(type, day, slot, arr);
+  if(currentCount === 1) score += 18;
+  if(currentCount === 2) score += 10;
+  if(currentCount >= 3) score -= 2;
+
+  return score;
+}
+
+function mergeSoloPairs(type, arr){
+  let changed = false;
+
+  // unique solo assignments by slot
+  const solos = arr.filter(a => countAt(type, a.day, a.slot, arr) === 1);
+
+  for(let i = 0; i < solos.length; i++){
+    for(let j = i + 1; j < solos.length; j++){
+      const a = solos[i];
+      const b = solos[j];
+
+      if(!a || !b) continue;
+      if(a.studentId === b.studentId) continue;
+      if(a.type !== type || b.type !== type) continue;
+
+      const aStudent = state.students.find(s => s.id === a.studentId);
+      const bStudent = state.students.find(s => s.id === b.studentId);
+      if(!aStudent || !bStudent) continue;
+
+      const aAvail = aStudent.availability.filter(v => v.type === type);
+      const bAvail = bStudent.availability.filter(v => v.type === type);
+
+      let bestShared = null;
+      let bestScore = -Infinity;
+
+      for(const av of aAvail){
+        const shared = bAvail.find(v => v.day === av.day && v.slot === av.slot);
+        if(!shared) continue;
+
+        const sc = candidateScore(type, av.day, av.slot, arr) + 50;
+        if(sc > bestScore){
+          bestScore = sc;
+          bestShared = { day: av.day, slot: av.slot };
+        }
+      }
+
+      if(bestShared){
+        a.day = bestShared.day;
+        a.slot = bestShared.slot;
+        b.day = bestShared.day;
+        b.slot = bestShared.slot;
+        changed = true;
+      }
+    }
+  }
+
+  return changed;
+}
+
+function waitlistRemainingSolos(type, arr){
+  const kept = [];
+  const waitlisted = [];
+
+  for(const item of arr){
+    if(item.type !== type){
+      kept.push(item);
+      continue;
+    }
+
+    const c = countAt(type, item.day, item.slot, arr);
+    if(c === 1){
+      waitlisted.push(item);
+    } else {
+      kept.push(item);
+    }
+  }
+
+  state.waitlist.push(...waitlisted);
+  return kept;
+}
+
+/* =========================
+   REPLACED AUTO BUILD
+========================= */
+
+function autoBuild(){
+  state.waitlist = [];
+
+  let built = [];
+
+  // Initial placement: choose best availability slot per student availability row
+  state.students.forEach(student => {
+    student.availability.forEach(av => {
+      const candidate = {
+        id: Math.random().toString(36).slice(2),
+        studentId: student.id,
+        studentName: student.name,
+        type: av.type,
+        day: av.day,
+        slot: av.slot
+      };
+
+      built.push(candidate);
+    });
+  });
+
+  // Group by student + type, keep best initial option only
+  const reduced = [];
+  const seen = new Set();
+
+  state.students.forEach(student => {
+    const grouped = {};
+
+    built
+      .filter(x => x.studentId === student.id)
+      .forEach(x => {
+        if(!grouped[x.type]) grouped[x.type] = [];
+        grouped[x.type].push(x);
+      });
+
+    Object.keys(grouped).forEach(type => {
+      const options = grouped[type];
+      options.sort((a, b) => candidateScore(type, b.day, b.slot, reduced) - candidateScore(type, a.day, a.slot, reduced));
+      if(options[0]){
+        reduced.push(options[0]);
+      }
+    });
+  });
+
+  // Fix cohorts
+  mergeSoloPairs("Group", reduced);
+  mergeSoloPairs("Advanced", reduced);
+
+  let finalArr = [...reduced];
+  finalArr = waitlistRemainingSolos("Group", finalArr);
+  finalArr = waitlistRemainingSolos("Advanced", finalArr);
+
+  state.schedule = finalArr;
+
+  saveState();
+  renderSchedule();
+  renderStudents();
+}
+
+</script>
+</body>
+</html>
+  
