@@ -103,3 +103,83 @@ button {
 <div id="waitlist"></div>
 
 <script>
+
+  const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+const SLOTS = ["Morning","Afternoon","Evening","Late Night"];
+
+let state = {
+  students: [],
+  schedule: [],
+  waitlist: []
+};
+
+/* =========================
+   BASIC RENDER
+========================= */
+
+function renderWeek(){
+
+  const grid = document.getElementById("weekGrid");
+  grid.innerHTML = "";
+
+  DAYS.forEach(day=>{
+    const div = document.createElement("div");
+    div.className = "cell";
+    div.innerText = day;
+    grid.appendChild(div);
+  });
+
+}
+
+/* =========================
+   AUTO BUILD (TEMP SIMPLE)
+========================= */
+
+function autoBuild(){
+
+  let arr = [];
+
+  state.students.forEach(s=>{
+    s.availability.forEach(a=>{
+      arr.push({
+        studentId: s.id,
+        studentName: s.name,
+        type: a.type,
+        day: a.day,
+        slot: a.slot
+      });
+    });
+  });
+
+  state.schedule = arr;
+
+  renderSchedule();
+}
+
+/* =========================
+   RENDER SCHEDULE
+========================= */
+
+function renderSchedule(){
+
+  const container = document.getElementById("schedule");
+
+  if(state.schedule.length === 0){
+    container.innerHTML = "<div class='card'>No schedule yet</div>";
+    return;
+  }
+
+  container.innerHTML = state.schedule.map(s=>`
+    <div class="card">
+      ${s.studentName} — ${s.type} — ${s.day} ${s.slot}
+    </div>
+  `).join("");
+
+}
+
+/* =========================
+   INIT
+========================= */
+
+renderWeek();
+renderSchedule();
