@@ -208,807 +208,241 @@ input,select,textarea{width:100%;padding:10px;border-radius:8px;border:none;marg
     <div id="moveTargets" style="margin-top:12px"></div>
   </div>
 </div>
-
 <script>
-const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
-const SLOTS = ["Morning","Afternoon","Evening","Late Night"];
-const TYPE_ORDER = {Private:4, Online:3, Advanced:2, Group:1};
-const STORAGE_KEY = "sam_scheduler_step5";
 
-let students = [];
-let selected = null;
-let schedule = [];
-let waitlist = [];
-let unscheduled = [];
-let selectedSessionId = null;
-let settings = {
-  groupCap: 4,
-  advancedCap: 4,
-  onlineCap: 4,
-  times: {
-    Morning: "10:00 AM",
-    Afternoon: "2:00 PM",
-    Evening: "6:30 PM",
-    "Late Night": "9:30 PM"
-  }
-};
-
-function notice(msg){
-  const el = document.getElementById("notice");
-  if(!msg){ el.classList.remove("show"); el.textContent = ""; return; }
-  el.textContent = msg;
-  el.classList.add("show");
-}
-
-function saveApp(){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({
-    students, selected, schedule, waitlist, unscheduled, settings
-  }));
-}
-
-function loadApp(){
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if(!raw) return;
-  try{
-    const parsed = JSON.parse(raw);
-    students = parsed.students || [];
-    selected = parsed.selected || null;
-    schedule = parsed.schedule || [];
-    waitlist = parsed.waitlist || [];
-    unscheduled = parsed.unscheduled || [];
-    settings = parsed.settings || settings;
-  }catch(e){}
-}
-
-function showPage(page){
-  document.getElementById("schedulePage").style.display = page==="schedule" ? "block" : "none";
-  document.getElementById("studentsPage").style.display = page==="students" ? "block" : "none";
-  document.getElementById("settingsPage").style.display = page==="settings" ? "block" : "none";
-  document.getElementById("tabSchedule").classList.toggle("active", page==="schedule");
-  document.getElementById("tabStudents").classList.toggle("active", page==="students");
-  document.getElementById("tabSettings").classList.toggle("active", page==="settings");
-}
-
-function uid(){
-  return Date.now().toString() + Math.random().toString(36).slice(2,7);
-}
-
-function escapeHtml(text){
-  return String(text).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
-}
-
-function getCap(type){
-  if(type==="Group") return settings.groupCap;
-  if(type==="Advanced") return settings.advancedCap;
-  if(type==="Online") return settings.onlineCap;
-  return 1;
-}
-
-function sessionNote(session){
-  return session.note ? session.note : "";
-}
-
-function addStudent(){
-  const name = document.getElementById("name").value.trim();
-  if(!name) return;
-  students.push({
-    id: uid(),
-    name,
-    packages: { Group:1, Advanced:0, Private:0, Online:0 },
-    maxPerDay: 1,
-    availability: []
-  });
-  document.getElementById("name").value = "";
-  renderStudents();
-  saveApp();
-}
-
-function renderStudents(){
-  const box = document.getElementById("students");
-  if(students.length===0){
-    box.innerHTML = "No students yet";
-    return;
-  }
-
-  box.innerHTML = students.map(s => `
-    <div class="card" style="margin-top:8px;cursor:pointer;border:${selected===s.id?'2px solid #6366f1':'none'}" onclick="selectStudent('${s.id}')">
-      <b>${escapeHtml(s.name)}</b><br>
-      <span class="small">
-        G:${s.packages.Group} A:${s.packages.Advanced} P:${s.packages.Private} O:${s.packages.Online}
-        • Max/day ${s.maxPerDay}
-        • ${s.availability.length} availability entries
-      </span>
-    </div>
-  `).join("");
-}
-
-function getSelectedStudent(){
-  return students.find(s => s.id === selected) || null;
-}
-
-function selectStudent(id){
-  selected = id;
-  renderStudents();
-  loadSelectedSettings();
-  renderSelected();
-  renderDays();
-  saveApp();
-}
-
-function loadSelectedSettings(){
-  const s = getSelectedStudent();
-  if(!s) return;
-  document.getElementById("pkgGroup").value = s.packages.Group;
-  document.getElementById("pkgAdvanced").value = s.packages.Advanced;
-  document.getElementById("pkgPrivate").value = s.packages.Private;
-  document.getElementById("pkgOnline").value = s.packages.Online;
-  document.getElementById("maxPerDay").value = s.maxPerDay;
-}
-
-function saveStudentSettings(){
-  const s = getSelectedStudent();
-  if(!s) return alert("Select a student first");
-  s.packages.Group = Number(document.getElementById("pkgGroup").value);
-  s.packages.Advanced = Number(document.getElementById("pkgAdvanced").value);
-  s.packages.Private = Number(document.getElementById("pkgPrivate").value);
-  s.packages.Online = Number(document.getElementById("pkgOnline").value);
-  s.maxPerDay = Number(document.getElementById("maxPerDay").value);
-  renderStudents();
-  renderSelected();
-  saveApp();
-  notice("Student settings saved.");
-}
-
-function renderSelected(){
-  const s = getSelectedStudent();
-  document.getElementById("selectedLabel").textContent = s ? `Editing: ${s.name}` : "Select a student first";
-
-  const box = document.getElementById("selectedSummary");
-  if(!s){
-    box.textContent = "No student selected";
-    return;
-  }
-
-  if(s.availability.length===0){
-    box.innerHTML = `<b>${escapeHtml(s.name)}</b><br><span class="small">No availability saved yet</span>`;
-    return;
-  }
-
-  const rows = [...s.availability].sort((a,b) => {
-    if(a.type !== b.type) return a.type.localeCompare(b.type);
-    if(a.slot !== b.slot) return SLOTS.indexOf(a.slot) - SLOTS.indexOf(b.slot);
-    return DAYS.indexOf(a.day) - DAYS.indexOf(b.day);
-  });
-
-  box.innerHTML = `
-    <b>${escapeHtml(s.name)}</b><br>
-    <span class="small">G:${s.packages.Group} A:${s.packages.Advanced} P:${s.packages.Private} O:${s.packages.Online} • Max/day ${s.maxPerDay}</span>
-    ${rows.map(a => `<div style="margin-top:6px">${a.type} — ${a.slot} — ${a.day}</div>`).join("")}
-  `;
-}
-
-function currentType(){ return document.getElementById("availType").value; }
-function currentSlot(){ return document.getElementById("availSlot").value; }
-
-function hasAvailability(student, type, slot, day){
-  return student.availability.some(a => a.type===type && a.slot===slot && a.day===day);
-}
-
-function renderDays(){
-  const s = getSelectedStudent();
-  if(!s){
-    document.getElementById("days").innerHTML = "Select a student first";
-    return;
-  }
-  const type = currentType();
-  const slot = currentSlot();
-
-  document.getElementById("days").innerHTML = DAYS.map(day => {
-    const active = hasAvailability(s, type, slot, day);
-    return `<div class="day ${active?'active':''}" onclick="toggleDay('${day}')">${day}</div>`;
-  }).join("");
-}
-
-function toggleDay(day){
-  const s = getSelectedStudent();
-  if(!s) return;
-  const type = currentType();
-  const slot = currentSlot();
-  const idx = s.availability.findIndex(a => a.type===type && a.slot===slot && a.day===day);
-  if(idx >= 0) s.availability.splice(idx, 1);
-  else s.availability.push({ type, slot, day });
-  renderDays();
-  renderSelected();
-  renderStudents();
-}
-
-function bulkWeekdays(){
-  const s = getSelectedStudent();
-  if(!s) return;
-  const type = currentType();
-  const slot = currentSlot();
-  ["Mon","Tue","Wed","Thu","Fri"].forEach(day => {
-    if(!hasAvailability(s, type, slot, day)) s.availability.push({ type, slot, day });
-  });
-  renderDays(); renderSelected(); renderStudents();
-}
-
-function bulkAllDays(){
-  const s = getSelectedStudent();
-  if(!s) return;
-  const type = currentType();
-  const slot = currentSlot();
-  DAYS.forEach(day => {
-    if(!hasAvailability(s, type, slot, day)) s.availability.push({ type, slot, day });
-  });
-  renderDays(); renderSelected(); renderStudents();
-}
-
-function clearCurrentTypeSlot(){
-  const s = getSelectedStudent();
-  if(!s) return;
-  const type = currentType();
-  const slot = currentSlot();
-  s.availability = s.availability.filter(a => !(a.type===type && a.slot===slot));
-  renderDays(); renderSelected(); renderStudents();
-}
-
-function copyAvailability(fromType, toType){
-  const s = getSelectedStudent();
-  if(!s) return alert("Select a student first");
-  const source = s.availability.filter(a => a.type===fromType);
-  s.availability = s.availability.filter(a => a.type!==toType);
-  source.forEach(a => s.availability.push({ type: toType, slot: a.slot, day: a.day }));
-  renderDays(); renderSelected(); renderStudents(); saveApp();
-  notice(`Copied ${fromType} availability to ${toType}.`);
-}
-
-function saveAvailability(){
-  const s = getSelectedStudent();
-  if(!s) return alert("Select a student first");
-  saveApp();
-  notice("Availability saved.");
-}
-
-function preferenceOrder(type){
-  if(type==="Online") return ["Late Night","Evening","Afternoon","Morning"];
-  if(type==="Private") return ["Morning","Afternoon","Evening","Late Night"];
-  return ["Afternoon","Evening","Morning","Late Night"];
-}
-
-function slotScore(type, day, slot, built){
-  let score = 0;
-  const pref = preferenceOrder(type);
-  score += (4 - pref.indexOf(slot)) * 10;
-
-  const sameCount = built.filter(x => x.type===type && x.day===day && x.slot===slot).length;
-
-  if(type==="Private"){
-    if(sameCount===0) score += 20;
-    else score -= 1000;
-    return score;
-  }
-
-  if(sameCount===0) score += 2;
-  if(sameCount===1) score += 30;
-  if(sameCount===2) score += 20;
-  if(sameCount===3) score += 12;
-  if(sameCount>=getCap(type)) score -= 1000;
-
-  return score;
-}
-
-function sameDayCount(studentId, day, built){
-  return built.filter(x => x.studentId===studentId && x.day===day).length;
-}
-
-function canPlace(student, option, built){
-  const sameStudentSameSlot = built.some(x => x.studentId===student.id && x.day===option.day && x.slot===option.slot);
-  if(sameStudentSameSlot) return false;
-  if(sameDayCount(student.id, option.day, built) >= student.maxPerDay) return false;
-
-  const sameSessionCount = built.filter(x => x.type===option.type && x.day===option.day && x.slot===option.slot).length;
-  if(option.type==="Private"){
-    if(sameSessionCount >= 1) return false;
-  } else {
-    if(sameSessionCount >= getCap(option.type)) return false;
-  }
-  return true;
-}
-
-function buildRequests(){
-  const requests = [];
-  students.forEach(s => {
-    const grouped = {};
-    s.availability.forEach(a => {
-      if(!grouped[a.type]) grouped[a.type] = [];
-      grouped[a.type].push(a);
-    });
-
-    Object.keys(grouped).forEach(type => {
-      const packageCount = Number(s.packages[type] || 0);
-      for(let i=0;i<packageCount;i++){
-        requests.push({
-          id: uid(),
-          studentId: s.id,
-          studentName: s.name,
-          type,
-          options: grouped[type],
-          requestIndex: i + 1
-        });
-      }
-    });
-  });
-
-  requests.sort((a,b) => TYPE_ORDER[b.type] - TYPE_ORDER[a.type]);
-  return requests;
-}
-
-function tryMoveSolo(type){
-  let moved = false;
-  const groups = {};
-  schedule.filter(x => x.type===type).forEach(s => {
-    const key = `${s.day}|${s.slot}`;
-    if(!groups[key]) groups[key] = [];
-    groups[key].push(s);
-  });
-
-  Object.keys(groups).forEach(key => {
-    const group = groups[key];
-    if(group.length !== 1) return;
-    const solo = group[0];
-    if(solo.locked) return;
-    const student = students.find(s => s.id===solo.studentId);
-    if(!student) return;
-
-    let bestTarget = null;
-    let bestScore = -999;
-    for(const option of student.availability){
-      if(option.type !== type) continue;
-      if(option.day===solo.day && option.slot===solo.slot) continue;
-      if(sameDayCount(student.id, option.day, schedule.filter(x => x.id!==solo.id)) >= student.maxPerDay) continue;
-
-      const targetCount = schedule.filter(x => x.type===type && x.day===option.day && x.slot===option.slot).length;
-      if(targetCount < 1) continue;
-      if(targetCount >= getCap(type)) continue;
-
-      const score = slotScore(type, option.day, option.slot, schedule);
-      if(score > bestScore){
-        bestScore = score;
-        bestTarget = option;
-      }
-    }
-
-    if(bestTarget){
-      solo.day = bestTarget.day;
-      solo.slot = bestTarget.slot;
-      moved = true;
-    }
-  });
-  return moved;
-}
-
-function waitlistRemainingSolos(type){
-  const groups = {};
-  schedule.filter(x => x.type===type).forEach(s => {
-    const key = `${s.day}|${s.slot}`;
-    if(!groups[key]) groups[key] = [];
-    groups[key].push(s);
-  });
-
-  Object.keys(groups).forEach(key => {
-    const group = groups[key];
-    if(group.length !== 1) return;
-    const solo = group[0];
-    if(solo.locked) return;
-    schedule = schedule.filter(x => x.id !== solo.id);
-    waitlist.push({
-      studentId: solo.studentId,
-      studentName: solo.studentName,
-      type: solo.type,
-      reason: "Could not form 2+ cohort"
-    });
-  });
-}
+// ===============================
+// STEP 6 OPTIMIZED ENGINE
+// ===============================
 
 function build(){
+
   schedule = [];
   waitlist = [];
   unscheduled = [];
 
   const requests = buildRequests();
 
-  requests.forEach(req => {
-    const student = students.find(s => s.id===req.studentId);
-    if(!student) return;
+  // STEP 1: BUILD ADVANCED FIRST (PAIR PRIORITY)
+  buildPairs("Advanced");
 
-    const viable = req.options.filter(opt => canPlace(student, opt, schedule));
-    if(viable.length===0){
-      unscheduled.push({
-        studentId: req.studentId,
-        studentName: req.studentName,
-        type: req.type,
-        reason: "No viable placement"
-      });
-      return;
-    }
+  // STEP 2: BUILD GROUP (EVENING PRIORITY)
+  buildPairs("Group");
 
-    viable.sort((a,b) => slotScore(req.type, b.day, b.slot, schedule) - slotScore(req.type, a.day, a.slot, schedule));
-    const best = viable[0];
+  // STEP 3: PLACE REMAINING REQUESTS
+  placeRemaining(requests);
 
-    schedule.push({
-      id: req.id,
-      studentId: req.studentId,
-      studentName: req.studentName,
-      type: req.type,
-      day: best.day,
-      slot: best.slot,
-      requestIndex: req.requestIndex,
-      locked: false,
-      note: ""
-    });
-  });
-
-  tryMoveSolo("Group");
-  tryMoveSolo("Advanced");
-  tryMoveSolo("Online");
-  waitlistRemainingSolos("Group");
-  waitlistRemainingSolos("Advanced");
-  waitlistRemainingSolos("Online");
+  // STEP 4: RESCUE PASS (VERY IMPORTANT)
+  rescuePass();
 
   renderSchedule();
   saveApp();
-  notice("Auto-build complete.");
+  notice("Step 6 optimized build complete");
 }
 
-function reoptimize(){
-  const locked = schedule.filter(x => x.locked);
-  const unlocked = schedule.filter(x => !x.locked);
-  const lockIds = new Set(locked.map(x => x.id));
 
-  const oldNotes = {};
-  schedule.forEach(s => oldNotes[s.id] = { note: s.note || "", locked: !!s.locked });
+// ===============================
+// PAIR BUILDER
+// ===============================
 
-  schedule = [...locked];
-  waitlist = [];
-  unscheduled = [];
+function buildPairs(type){
 
-  const requests = buildRequests().filter(req => !lockIds.has(req.id));
+  const grouped = {};
 
-  requests.forEach(req => {
-    const student = students.find(s => s.id===req.studentId);
-    if(!student) return;
-
-    const viable = req.options.filter(opt => canPlace(student, opt, schedule));
-    if(viable.length===0){
-      unscheduled.push({
-        studentId: req.studentId,
-        studentName: req.studentName,
-        type: req.type,
-        reason: "No viable placement"
+  students.forEach(s=>{
+    s.availability
+      .filter(a=>a.type===type)
+      .forEach(a=>{
+        const key = `${a.day}|${a.slot}`;
+        if(!grouped[key]) grouped[key]=[];
+        grouped[key].push(s);
       });
+  });
+
+  Object.keys(grouped).forEach(key=>{
+    const [day,slot] = key.split("|");
+
+    let candidates = grouped[key]
+      .filter(s => canUseStudentForType(s,type,day,slot))
+      .sort((a,b)=> priorityScore(type,b.slot)-priorityScore(type,a.slot));
+
+    while(candidates.length >= 2){
+
+      const s1 = candidates.shift();
+      const s2 = candidates.shift();
+
+      schedule.push(makeSession(s1,type,day,slot));
+      schedule.push(makeSession(s2,type,day,slot));
+    }
+  });
+}
+
+
+// ===============================
+// REMAINING PLACEMENT
+// ===============================
+
+function placeRemaining(requests){
+
+  requests.forEach(req=>{
+    if(schedule.some(s=>s.studentId===req.studentId && s.type===req.type)) return;
+
+    const student = students.find(s=>s.id===req.studentId);
+
+    const viable = req.options.filter(opt =>
+      canPlace(student,opt,schedule)
+    );
+
+    if(viable.length===0){
+      unscheduled.push(req);
       return;
     }
 
-    viable.sort((a,b) => slotScore(req.type, b.day, b.slot, schedule) - slotScore(req.type, a.day, a.slot, schedule));
+    viable.sort((a,b)=>
+      slotScore(req.type,b.day,b.slot,schedule)
+      - slotScore(req.type,a.day,a.slot,schedule)
+    );
+
     const best = viable[0];
 
-    schedule.push({
-      id: req.id,
-      studentId: req.studentId,
-      studentName: req.studentName,
-      type: req.type,
-      day: best.day,
-      slot: best.slot,
-      requestIndex: req.requestIndex,
-      locked: false,
-      note: oldNotes[req.id]?.note || ""
-    });
+    schedule.push(makeSession(student,req.type,best.day,best.slot));
   });
-
-  tryMoveSolo("Group");
-  tryMoveSolo("Advanced");
-  tryMoveSolo("Online");
-  waitlistRemainingSolos("Group");
-  waitlistRemainingSolos("Advanced");
-  waitlistRemainingSolos("Online");
-
-  renderSchedule();
-  saveApp();
-  notice("Re-optimized.");
 }
 
-function renderSchedule(){
-  renderSummary();
+
+// ===============================
+// RESCUE PASS (CRITICAL)
+// ===============================
+
+function rescuePass(){
+
+  let changed = true;
+
+  while(changed){
+    changed = false;
+
+    const solos = findSoloSessions();
+
+    solos.forEach(solo=>{
+
+      const student = students.find(x=>x.id===solo.studentId);
+      if(!student) return;
+
+      for(const opt of student.availability){
+
+        if(opt.type !== solo.type) continue;
+
+        const groupCount = countSession(opt.type,opt.day,opt.slot);
+
+        if(groupCount === 1){
+
+          // MOVE SOLO → PAIR
+          solo.day = opt.day;
+          solo.slot = opt.slot;
+          changed = true;
+          return;
+        }
+      }
+    });
+  }
+}
+
+
+// ===============================
+// HELPERS
+// ===============================
+
+function makeSession(student,type,day,slot){
+  return {
+    id: uid(),
+    studentId: student.id,
+    studentName: student.name,
+    type,
+    day,
+    slot,
+    locked:false,
+    note:""
+  };
+}
+
+function canUseStudentForType(student,type,day,slot){
+
+  if(!student.packages[type]) return false;
+
+  const used = schedule.filter(s=>
+    s.studentId===student.id &&
+    s.type===type
+  ).length;
+
+  if(used >= student.packages[type]) return false;
+
+  return canPlace(student,{type,day,slot},schedule);
+}
+
+function countSession(type,day,slot){
+  return schedule.filter(s=>s.type===type && s.day===day && s.slot===slot).length;
+}
+
+function findSoloSessions(){
 
   const map = {};
-  DAYS.forEach(day => {
-    map[day] = {};
-    SLOTS.forEach(slot => map[day][slot] = []);
-  });
 
-  schedule.forEach(s => map[s.day][s.slot].push(s));
-
-  document.getElementById("schedule").innerHTML = `
-    <table class="weekTable">
-      <thead>
-        <tr>
-          <th></th>
-          ${DAYS.map(d => `<th>${d}</th>`).join("")}
-        </tr>
-      </thead>
-      <tbody>
-        ${SLOTS.map(slot => `
-          <tr>
-            <th>${slot}</th>
-            ${DAYS.map(day => `
-              <td>
-                <div class="slotBox">
-                  ${
-                    map[day][slot].length
-                      ? map[day][slot].map(x => `
-                          <div class="sessionItem ${x.locked ? "locked":""}" onclick="openMoveModal('${x.id}')">
-                            <b>${x.type}</b><span class="pill">${x.studentName}${x.requestIndex>1 ? " #" + x.requestIndex : ""}</span>
-                            ${x.note ? `<span class="noteTag">note</span>` : ""}
-                            <div class="small">${settings.times[x.slot] || ""}${x.locked ? " • locked" : ""}</div>
-                          </div>
-                        `).join("")
-                      : `<div class="small">—</div>`
-                  }
-                </div>
-              </td>
-            `).join("")}
-          </tr>
-        `).join("")}
-      </tbody>
-    </table>
-  `;
-
-  if(waitlist.length===0){
-    document.getElementById("waitlist").innerHTML = "Waitlist: none";
-  } else {
-    document.getElementById("waitlist").innerHTML = `
-      <b>Waitlist</b>
-      ${waitlist.map(w => `
-        <div style="margin-top:8px">
-          <b>${escapeHtml(w.studentName)}</b> — ${escapeHtml(w.type)}<br>
-          <span class="small">${escapeHtml(w.reason)}</span>
-        </div>
-      `).join("")}
-    `;
-  }
-
-  if(unscheduled.length===0){
-    document.getElementById("unscheduled").innerHTML = "Unscheduled: none";
-  } else {
-    document.getElementById("unscheduled").innerHTML = `
-      <b>Unscheduled</b>
-      ${unscheduled.map(u => `
-        <div style="margin-top:8px">
-          <b>${escapeHtml(u.studentName)}</b> — ${escapeHtml(u.type)}<br>
-          <span class="small">${escapeHtml(u.reason)}</span>
-        </div>
-      `).join("")}
-    `;
-  }
-}
-
-function renderSummary(){
-  const counts = {
-    Group: schedule.filter(x => x.type==="Group").length,
-    Advanced: schedule.filter(x => x.type==="Advanced").length,
-    Private: schedule.filter(x => x.type==="Private").length,
-    Online: schedule.filter(x => x.type==="Online").length
-  };
-
-  const cohorts = {};
-  schedule.forEach(s => {
+  schedule.forEach(s=>{
     const key = `${s.type}|${s.day}|${s.slot}`;
-    if(!cohorts[key]) cohorts[key] = 0;
-    cohorts[key]++;
+    if(!map[key]) map[key]=[];
+    map[key].push(s);
   });
 
-  document.getElementById("summary").innerHTML = `
-    <div class="summaryStat">Total scheduled: ${schedule.length}</div>
-    <div class="summaryStat">Group: ${counts.Group}</div>
-    <div class="summaryStat">Advanced: ${counts.Advanced}</div>
-    <div class="summaryStat">Private: ${counts.Private}</div>
-    <div class="summaryStat">Online: ${counts.Online}</div>
-    <div class="summaryStat">Sessions: ${Object.keys(cohorts).length}</div>
-  `;
+  return Object.values(map)
+    .filter(group=>group.length===1)
+    .map(group=>group[0]);
 }
 
-function clearSchedule(){
-  schedule = [];
-  waitlist = [];
-  unscheduled = [];
-  renderSchedule();
-  saveApp();
-}
 
-function buildExport(){
-  const label = document.getElementById("weekLabel").value.trim() || "Weekly Schedule";
-  const lines = [label, ""];
+// ===============================
+// SCORING (UPDATED)
+// ===============================
 
-  DAYS.forEach(day => {
-    lines.push(day);
+function priorityScore(type,slot){
 
-    const items = schedule
-      .filter(x => x.day===day)
-      .sort((a,b) => SLOTS.indexOf(a.slot) - SLOTS.indexOf(b.slot));
-
-    if(items.length===0){
-      lines.push("OFF", "");
-      return;
-    }
-
-    items.forEach(x => {
-      const time = settings.times[x.slot] || "";
-      const note = x.note ? ` [${x.note}]` : "";
-      lines.push(`${x.slot}${time ? " (" + time + ")" : ""} — ${x.type} — ${x.studentName}${x.requestIndex>1 ? " #" + x.requestIndex : ""}${note}`);
-    });
-    lines.push("");
-  });
-
-  document.getElementById("exportBox").value = lines.join("\n").trim();
-}
-
-function saveCapSettings(){
-  settings.groupCap = Number(document.getElementById("groupCap").value);
-  settings.advancedCap = Number(document.getElementById("advancedCap").value);
-  settings.onlineCap = Number(document.getElementById("onlineCap").value);
-  saveApp();
-  notice("Capacity settings saved.");
-}
-
-function saveTimeSettings(){
-  settings.times.Morning = document.getElementById("timeMorning").value;
-  settings.times.Afternoon = document.getElementById("timeAfternoon").value;
-  settings.times.Evening = document.getElementById("timeEvening").value;
-  settings.times["Late Night"] = document.getElementById("timeLateNight").value;
-  saveApp();
-  notice("Default times saved.");
-}
-
-function exportState(){
-  document.getElementById("stateBox").value = JSON.stringify({
-    students, selected, schedule, waitlist, unscheduled, settings
-  }, null, 2);
-  notice("App state exported.");
-}
-
-function importState(){
-  const raw = document.getElementById("stateBox").value.trim();
-  if(!raw) return alert("Paste JSON first.");
-
-  try{
-    const parsed = JSON.parse(raw);
-    students = parsed.students || [];
-    selected = parsed.selected || null;
-    schedule = parsed.schedule || [];
-    waitlist = parsed.waitlist || [];
-    unscheduled = parsed.unscheduled || [];
-    settings = parsed.settings || settings;
-    init();
-    saveApp();
-    notice("App state imported.");
-  }catch(e){
-    alert("Invalid JSON");
-  }
-}
-
-function openMoveModal(sessionId){
-  selectedSessionId = sessionId;
-  const s = schedule.find(x => x.id===sessionId);
-  if(!s) return;
-
-  document.getElementById("moveModal").classList.add("show");
-  document.getElementById("moveTitle").textContent = `Move ${s.studentName}`;
-  document.getElementById("moveInfo").textContent = `${s.type} — ${s.day} ${s.slot}`;
-  document.getElementById("moveNote").value = s.note || "";
-
-  const student = students.find(st => st.id===s.studentId);
-  if(!student) return;
-
-  const targets = student.availability
-    .filter(a => a.type===s.type)
-    .sort((a,b) => {
-      if(a.day!==b.day) return DAYS.indexOf(a.day)-DAYS.indexOf(b.day);
-      return SLOTS.indexOf(a.slot)-SLOTS.indexOf(b.slot);
-    });
-
-  document.getElementById("moveTargets").innerHTML = targets.map(t => `
-    <button class="moveBtn" onclick="moveSelectedTo('${t.day}','${t.slot}')">
-      ${t.day} — ${t.slot}
-    </button>
-  `).join("");
-}
-
-function closeMoveModal(){
-  document.getElementById("moveModal").classList.remove("show");
-  selectedSessionId = null;
-}
-
-function moveSelectedTo(day, slot){
-  const s = schedule.find(x => x.id===selectedSessionId);
-  if(!s) return;
-
-  const student = students.find(st => st.id===s.studentId);
-  if(!student) return;
-
-  const otherDayCount = schedule.filter(x => x.id!==s.id && x.studentId===s.studentId && x.day===day).length;
-  if(otherDayCount >= student.maxPerDay){
-    alert("That would exceed max sessions per day.");
-    return;
+  if(type==="Group"){
+    if(slot==="Evening") return 100;
+    if(slot==="Afternoon") return 40;
+    return 0;
   }
 
-  const sameSessionCount = schedule.filter(x => x.id!==s.id && x.type===s.type && x.day===day && x.slot===slot).length;
-  if(s.type==="Private" && sameSessionCount >= 1){
-    alert("Private slot already taken.");
-    return;
-  }
-  if(s.type!=="Private" && sameSessionCount >= getCap(s.type)){
-    alert("That session is already full.");
-    return;
+  if(type==="Advanced"){
+    if(slot==="Afternoon") return 90;
+    if(slot==="Evening") return 80;
+    return 0;
   }
 
-  s.day = day;
-  s.slot = slot;
-  s.note = document.getElementById("moveNote").value.trim();
-  renderSchedule();
-  saveApp();
-  closeMoveModal();
-  notice("Session moved.");
-}
-
-function toggleLockSelected(){
-  const s = schedule.find(x => x.id===selectedSessionId);
-  if(!s) return;
-  s.locked = !s.locked;
-  s.note = document.getElementById("moveNote").value.trim();
-  renderSchedule();
-  saveApp();
-  notice(s.locked ? "Session locked." : "Session unlocked.");
-}
-
-function removeSelectedSession(){
-  const s = schedule.find(x => x.id===selectedSessionId);
-  if(!s) return;
-  schedule = schedule.filter(x => x.id!==s.id);
-  renderSchedule();
-  saveApp();
-  closeMoveModal();
-  notice("Session removed.");
-}
-
-document.getElementById("moveNote").addEventListener("input", () => {
-  const s = schedule.find(x => x.id===selectedSessionId);
-  if(!s) return;
-  s.note = document.getElementById("moveNote").value.trim();
-  saveApp();
-});
-
-function init(){
-  loadApp();
-  document.getElementById("groupCap").value = settings.groupCap;
-  document.getElementById("advancedCap").value = settings.advancedCap;
-  document.getElementById("onlineCap").value = settings.onlineCap;
-  document.getElementById("timeMorning").value = settings.times.Morning || "";
-  document.getElementById("timeAfternoon").value = settings.times.Afternoon || "";
-  document.getElementById("timeEvening").value = settings.times.Evening || "";
-  document.getElementById("timeLateNight").value = settings.times["Late Night"] || "";
-  renderStudents();
-  renderSchedule();
-
-  if(selected){
-    loadSelectedSettings();
-    renderSelected();
-    renderDays();
+  if(type==="Online"){
+    if(slot==="Late Night") return 100;
   }
+
+  return 0;
 }
 
-init();
+function slotScore(type,day,slot,built){
+
+  let score = priorityScore(type,slot);
+
+  const count = countSession(type,day,slot);
+
+  // reward forming groups
+  if(count===1) score += 50;
+  if(count===2) score += 20;
+
+  // penalize weak group times
+  if(type==="Group" && slot!=="Evening"){
+    score -= 40;
+  }
+
+  return score;
+}
+
 </script>
+
 
 </body>
 </html>
