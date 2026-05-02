@@ -5,34 +5,207 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Sam Scheduler Step 6</title>
 <style>
-body{margin:0;font-family:-apple-system;background:#0f1115;color:#fff}
-.top{padding:14px;background:#111}
-.tabs{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
-.tab,.btn,.mini{padding:10px;border-radius:10px;border:none;background:#222;color:#fff;font-weight:bold;cursor:pointer}
-.tab.active,.btn{background:#6366f1}
-.container{padding:14px}
-.card{background:#1a1d26;padding:12px;border-radius:12px;margin-top:12px}
-.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
-.day{padding:8px;border-radius:8px;background:#222;text-align:center;cursor:pointer}
-.day.active{background:#6366f1}
-input,select,textarea{width:100%;padding:10px;border-radius:8px;border:none;margin-top:8px;box-sizing:border-box}
-.row{display:flex;gap:8px;flex-wrap:wrap}
-.small{font-size:12px;opacity:.78}
-.weekTable{width:100%;border-collapse:separate;border-spacing:8px}
-.weekTable td,.weekTable th{vertical-align:top}
-.slotBox{background:#222;padding:8px;border-radius:10px;min-width:170px}
-.pill{display:inline-block;background:#6366f1;padding:3px 8px;border-radius:999px;font-size:11px;margin-left:6px}
-.summaryStat{display:inline-block;background:#222;padding:8px 10px;border-radius:10px;margin:4px 6px 0 0}
-.notice{margin-top:10px;padding:10px;border-radius:10px;background:#222;display:none}
-.notice.show{display:block}
-.sessionItem{margin-bottom:8px;padding:8px;border-radius:8px;background:#191f30;cursor:pointer}
-.locked{outline:2px solid #f59e0b}
-.noteTag{display:inline-block;background:#334155;padding:2px 6px;border-radius:999px;font-size:10px;margin-left:6px}
-.modalBg{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:flex-end;justify-content:center;padding:20px;z-index:1000}
-.modalBg.show{display:flex}
-.modalCard{width:min(720px,100%);background:#111827;border-radius:16px;padding:16px}
-.moveBtn{display:block;width:100%;text-align:left;margin-top:8px;padding:10px;border:none;border-radius:10px;background:#1f2937;color:#fff}
-@media(max-width:700px){.grid{grid-template-columns:repeat(4,1fr)}}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  background:#0f1115;
+  color:#fff;
+  font-size:15px;
+}
+.top{
+  position:sticky;
+  top:0;
+  z-index:50;
+  padding:12px 14px;
+  background:#111;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+.top h2{
+  margin:0;
+  font-size:20px;
+  line-height:1.2;
+}
+.tabs{
+  display:flex;
+  gap:8px;
+  margin-top:10px;
+}
+.tab,.btn,.mini{
+  padding:9px 12px;
+  border-radius:10px;
+  border:none;
+  background:#222;
+  color:#fff;
+  font-weight:700;
+  cursor:pointer;
+  font-size:14px;
+}
+.tab.active,.btn{
+  background:#6366f1;
+}
+.container{
+  padding:14px;
+  max-width:1100px;
+  margin:0 auto;
+}
+.card{
+  background:#1a1d26;
+  padding:12px;
+  border-radius:14px;
+  margin-top:12px;
+}
+.row{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.small{
+  font-size:12px;
+  opacity:.75;
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:6px;
+}
+.day{
+  padding:8px;
+  border-radius:8px;
+  background:#222;
+  text-align:center;
+  cursor:pointer;
+  font-size:13px;
+}
+.day.active{
+  background:#6366f1;
+}
+input,select,textarea{
+  width:100%;
+  padding:10px;
+  border-radius:8px;
+  border:none;
+  margin-top:8px;
+  box-sizing:border-box;
+  background:#fff;
+  color:#000;
+  font-size:14px;
+}
+textarea{
+  min-height:100px;
+}
+.weekTable{
+  width:100%;
+  border-collapse:separate;
+  border-spacing:6px;
+  font-size:13px;
+}
+.weekTable td,.weekTable th{
+  vertical-align:top;
+}
+.weekTable th{
+  font-size:13px;
+  white-space:nowrap;
+}
+.slotBox{
+  background:#222;
+  padding:8px;
+  border-radius:10px;
+  min-width:130px;
+}
+.pill{
+  display:inline-block;
+  background:#6366f1;
+  padding:3px 7px;
+  border-radius:999px;
+  font-size:11px;
+  margin-left:4px;
+}
+.summaryStat{
+  display:inline-block;
+  background:#222;
+  padding:7px 9px;
+  border-radius:10px;
+  margin:4px 5px 0 0;
+  font-size:13px;
+}
+.notice{
+  margin-top:10px;
+  padding:10px;
+  border-radius:10px;
+  background:#222;
+  display:none;
+}
+.notice.show{
+  display:block;
+}
+.sessionItem{
+  margin-bottom:7px;
+  padding:7px;
+  border-radius:8px;
+  background:#191f30;
+  cursor:pointer;
+  font-size:13px;
+}
+.locked{
+  outline:2px solid #f59e0b;
+}
+.noteTag{
+  display:inline-block;
+  background:#334155;
+  padding:2px 6px;
+  border-radius:999px;
+  font-size:10px;
+  margin-left:6px;
+}
+.modalBg{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.6);
+  display:none;
+  align-items:flex-end;
+  justify-content:center;
+  padding:20px;
+  z-index:1000;
+}
+.modalBg.show{
+  display:flex;
+}
+.modalCard{
+  width:min(700px,100%);
+  background:#111827;
+  border-radius:16px;
+  padding:16px;
+}
+.moveBtn{
+  display:block;
+  width:100%;
+  text-align:left;
+  margin-top:8px;
+  padding:10px;
+  border:none;
+  border-radius:10px;
+  background:#1f2937;
+  color:#fff;
+}
+@media(max-width:700px){
+  .grid{
+    grid-template-columns:repeat(4,1fr);
+  }
+  .weekTable{
+    min-width:850px;
+  }
+  #schedule{
+    overflow-x:auto;
+  }
+  .top h2{
+    font-size:19px;
+  }
+  .tab,.btn,.mini{
+    font-size:13px;
+    padding:9px 10px;
+  }
+}
 </style>
 </head>
 <body>
