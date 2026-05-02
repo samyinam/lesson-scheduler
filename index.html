@@ -611,10 +611,16 @@ textarea{width:100%;min-height:90px;margin-top:8px;padding:10px;border-radius:12
       </div>
       <div id="moveOptions" class="moveOptions"></div>
       <div class="sheetActions">
-        <button id="lockSessionBtn" class="btnGhost">Lock session</button>
-        <button id="cancelSessionBtn" class="btnGhost">Cancel this session</button>
-        <button id="cancelWeekBtn" class="btnGhost">Cancel student for week</button>
-      </div>
+<button id="lockSessionBtn" class="btnGhost">Lock session</
+button>
+
+<button id="moveWaitlistBtn" class="btnGhost">Move to
+waitlist</button>
+<button id="cancelSessionBtn" class="btnGhost">Cancel this
+session</button>
+<button id="cancelWeekBtn" class="btnGhost">Cancel student for
+week</button>
+</div>
     </div>
   </div>
 </main>
@@ -1843,7 +1849,28 @@ function toggleActiveLock(){
   updateLockButton();
   setNotice(`${a.locked ? "Locked":"Unlocked"} ${a.studentName}'s ${a.type} session.`);
 }
+function moveActiveSessionToWaitlist(){
+const a = activeAssignment();
+if(!a) return;
+if(!confirm(`Move ${a.studentName}'s ${a.type} session to the
+waitlist?`)) return;
+state.schedule = state.schedule.filter(x => x.id !== a.id);
 
+state.waitlist.push({
+id: a.id,
+studentId: a.studentId,
+studentName: a.studentName,
+type: a.type,
+unitIndex: a.unitIndex,
+locked: !!a.locked,
+reason: "Moved from schedule"
+});
+closeMoveModal();
+save();
+renderSchedule();
+setNotice(`Moved ${a.studentName} to the waitlist.`);
+}
+  
 function cancelActiveSession(){
   const a = activeAssignment();
   if(!a) return;
@@ -2442,11 +2469,18 @@ document.getElementById("copyExportBtn").onclick = async ()=>{
   }
 };
 
-document.getElementById("moveBackdrop").onclick = closeMoveModal;
-document.getElementById("closeMove").onclick = closeMoveModal;
-document.getElementById("lockSessionBtn").onclick = toggleActiveLock;
-document.getElementById("cancelSessionBtn").onclick = cancelActiveSession;
-document.getElementById("cancelWeekBtn").onclick = cancelStudentForWeek;
+document.getElementById("moveBackdrop").onclick =
+closeMoveModal;
+document.getElementById("closeMove").onclick =
+closeMoveModal;
+document.getElementById("lockSessionBtn").onclick =
+toggleActiveLock;
+document.getElementById("moveWaitlistBtn").onclick =
+moveActiveSessionToWaitlist;
+document.getElementById("cancelSessionBtn").onclick =
+cancelActiveSession;
+document.getElementById("cancelWeekBtn").onclick =
+cancelStudentForWeek;
 
 function renderFilters(){
   document.getElementById("showFilterBtns").innerHTML = ["All","Filled"].map(v =>
