@@ -502,10 +502,15 @@ textarea{width:100%;min-height:90px;margin-top:8px;padding:10px;border-radius:12
         <div class="availabilitySection"><div class="availabilityRowHeader">Late Night</div><div id="onlineLateNight" class="gridDays gridDays7"></div></div>
       </details>
 
-      <div class="row" style="margin-top:14px">
-        <button id="saveAllAvailabilityBtn" class="btn">Save all availability</button>
-        <button id="clearSelectedStudentAvailabilityBtn" class="btnGhost">Clear selected student availability</button>
-      </div>
+     <div class="row" style="margin-top:14px">
+<button id="saveAllAvailabilityBtn" class="btn">Save all
+availability</button>
+<button id="addSelectedToWaitlistBtn" class="btnGhost">Add
+selected to waitlist</button>
+<button id="clearSelectedStudentAvailabilityBtn"
+class="btnGhost">Clear selected student availability</button>
+</div>
+  
     </div>
 
     <div class="card">
@@ -1466,7 +1471,47 @@ function savePackages(){
   renderStudentQuickList(document.getElementById("studentSearch").value || "");
   alert("Student settings saved ✅");
 }
+function addSelectedStudentToWaitlist(){
+const s = getCurrentStudent();
+if(!s) return alert("Select a student first.");
+let added = 0;
+TYPES.forEach(type => {
+const n = Number(s.packages[type] || 0);
 
+for(let i = 1; i <= n; i++){
+const alreadyScheduled = state.schedule.some(a =>
+a.studentId === s.id &&
+a.type === type &&
+Number(a.unitIndex || 1) === i
+);
+const alreadyWaitlisted = state.waitlist.some(w =>
+w.studentId === s.id &&
+w.type === type &&
+Number(w.unitIndex || 1) === i
+);
+if(!alreadyScheduled && !alreadyWaitlisted){
+state.waitlist.push({
+id: uid(),
+studentId: s.id,
+studentName: s.name,
+type,
+unitIndex: i,
+locked: false,
+reason: "Added manually"
+});
+added++;
+}
+}
+});
+save();
+renderSchedule();
+
+if(added){
+setNotice(`Added ${s.name} to the waitlist.`);
+}else{
+setNotice(`${s.name} is already scheduled or waitlisted.`);
+}
+}
 function saveAllAvailability(){
   const s = getCurrentStudent();
   if(!s) return alert("Select a student first.");
@@ -2363,6 +2408,8 @@ document.getElementById("addStudentBtn").onclick = () => {
 
 document.getElementById("savePackagesBtn").onclick = savePackages;
 document.getElementById("saveAllAvailabilityBtn").onclick = saveAllAvailability;
+  document.getElementById("addSelectedToWaitlistBtn").onclick =
+addSelectedStudentToWaitlist;
 document.getElementById("clearSelectedStudentAvailabilityBtn").onclick = clearSelectedStudentAvailability;
 
 document.querySelectorAll("[data-bulk]").forEach(btn=>{
